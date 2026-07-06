@@ -18,6 +18,16 @@ Available packages and libraries:
 - You have ALL the necessary Radix UI components installed.
 - Use prebuilt components from the shadcn/ui library after importing them. Note that these files shouldn't be edited, so make new components if you need to change them.
 
+## Arquitectura y Modularidad (Reglas Estrictas)
+
+A partir de ahora, TODO el código generado, refactorizado o sugerido debe obedecer estrictamente los siguientes principios arquitectónicos:
+
+1. **Principio de Responsabilidad Única (SRP):** Divide las vistas grandes y complejas (como las páginas completas en `src/pages/`) en sub-componentes pequeños y reutilizables. Un archivo no debe hacer demasiadas cosas a la vez.
+2. **Separación de Lógica y UI:** Extrae la lógica de negocio compleja, las llamadas a la API y el manejo de estados globales fuera de los componentes de React. Utiliza Custom Hooks (en `src/hooks/`) o funciones de utilidad (en `src/utils/` o `src/lib/`) para mantener los componentes visuales limpios.
+3. **Componentización de UI:** Cualquier elemento visual que se repita (tarjetas específicas, modales, variantes de botones) debe ser extraído como un componente independiente (por ejemplo, en `src/components/common/` o extendiendo `src/components/ui/`).
+4. **Estructura de Carpetas Modular:** Agrupa los archivos por dominio o característica funcional cuando sea necesario, en lugar de amontonar todos los componentes en una sola carpeta plana.
+5. **Archivos Pequeños y Mantenibles:** Si un archivo crece demasiado (código espagueti), es un indicador estricto de que debe ser refactorizado en módulos más pequeños antes de añadir nuevas funcionalidades.
+
 <!-- nitro:start -->
 
 ## Nitro Server Layer
