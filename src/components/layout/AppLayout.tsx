@@ -67,18 +67,18 @@ export function AppLayout() {
 
           <div className={cn("p-8 hidden md:flex flex-col items-center transition-all duration-300", isCollapsed ? "p-4 mt-10" : "")}>
             <div className={cn(
-              "bg-zinc-950 text-white flex items-center justify-center shadow-xl shadow-zinc-950/20 transition-all duration-300 flex-shrink-0", 
+              "bg-blue-600 text-white flex items-center justify-center shadow-xl shadow-blue-600/20 transition-all duration-300 flex-shrink-0",
               isCollapsed ? "w-12 h-12 rounded-xl mb-0" : "w-14 h-14 rounded-2xl mb-4"
             )}>
               <Command className={cn("transition-all duration-300", isCollapsed ? "w-6 h-6" : "w-7 h-7")} />
             </div>
             
             <div className={cn(
-              "flex flex-col items-center transition-all duration-300 overflow-hidden", 
+              "flex flex-col items-center transition-all duration-300 overflow-hidden",
               isCollapsed ? "h-0 opacity-0" : "h-16 opacity-100"
             )}>
               <h2 className="font-bold text-xl text-zinc-900 tracking-tight whitespace-nowrap">Gestión MVP</h2>
-              <div className="mt-3 px-3 py-1 bg-zinc-100/80 border border-zinc-200 text-zinc-600 text-xs font-mono font-medium rounded-full uppercase tracking-widest whitespace-nowrap">
+              <div className="mt-3 px-3 py-1 bg-blue-50/80 border border-blue-200/50 text-blue-700 text-xs font-mono font-bold rounded-full uppercase tracking-widest whitespace-nowrap shadow-sm shadow-blue-500/5">
                 {role}
               </div>
             </div>
@@ -95,17 +95,17 @@ export function AppLayout() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
                     "group flex items-center rounded-2xl text-sm font-medium transition-all duration-300 overflow-hidden",
-                    isActive 
-                      ? "bg-zinc-950 text-white premium-shadow" 
-                      : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 hover:translate-x-1",
+                    isActive
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                      : "text-zinc-500 hover:bg-blue-50 hover:text-blue-700 hover:translate-x-1",
                     isCollapsed ? "justify-center p-3" : "gap-4 px-4 py-3.5"
                   )}
                   style={{ animationDelay: `${i * 100}ms` }}
                 >
                   <item.icon className={cn(
-                    "transition-transform duration-300 flex-shrink-0", 
+                    "transition-transform duration-300 flex-shrink-0",
                     isCollapsed ? "w-6 h-6" : "w-5 h-5",
-                    isActive ? "text-zinc-300" : "text-zinc-400 group-hover:text-zinc-900 group-hover:scale-110"
+                    isActive ? "text-white" : "text-zinc-400 group-hover:text-blue-600 group-hover:scale-110"
                   )} />
                   <span className={cn(
                     "transition-all duration-300 whitespace-nowrap",
@@ -162,7 +162,7 @@ export function AppLayout() {
             </h1>
             <div className="flex items-center gap-4">
                <div className="hidden lg:flex items-center gap-2 text-xs font-mono text-zinc-400 bg-zinc-100/50 px-3 py-1.5 rounded-full border border-zinc-200/50">
-                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                 <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.5)]"></span>
                  SYS_ONLINE
                </div>
             </div>

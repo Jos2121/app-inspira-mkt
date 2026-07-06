@@ -15,7 +15,7 @@ export function AuthPage() {
         
         {/* Brand Logo */}
         <div className="relative z-10 flex items-center gap-3 text-white">
-          <div className="w-12 h-12 bg-white text-zinc-950 rounded-2xl flex items-center justify-center shadow-xl shadow-white/10">
+          <div className="w-12 h-12 bg-blue-600 border border-blue-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/30">
             <Command className="w-6 h-6" />
           </div>
           <span className="font-bold text-2xl tracking-tight">Gestión MVP</span>
@@ -23,8 +23,8 @@ export function AuthPage() {
         
         {/* Hero Copy */}
         <div className="relative z-10 space-y-6 max-w-lg">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-zinc-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-mono text-blue-200">
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.6)]"></span>
             SISTEMA EN LÍNEA
           </div>
           <h2 className="text-4xl font-bold text-white tracking-tight leading-tight">
@@ -51,7 +51,7 @@ export function AuthPage() {
           
           {/* Mobile Logo */}
           <div className="lg:hidden flex flex-col items-center gap-4 mb-10 justify-center">
-            <div className="w-14 h-14 bg-zinc-950 text-white rounded-2xl flex items-center justify-center shadow-xl shadow-zinc-950/20">
+            <div className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/30 border border-blue-500">
               <Command className="w-7 h-7" />
             </div>
             <span className="font-bold text-2xl tracking-tight text-zinc-900">Gestión MVP</span>
@@ -79,14 +79,14 @@ export function AuthPage() {
               {path === 'sign-in' ? (
                 <p>
                   ¿No tienes una cuenta?{' '}
-                  <Link to="/auth/sign-up" className="text-zinc-900 hover:underline font-semibold transition-colors">
+                  <Link to="/auth/sign-up" className="text-blue-600 hover:text-blue-700 hover:underline font-semibold transition-colors">
                     Regístrate aquí
                   </Link>
                 </p>
               ) : (
                 <p>
                   ¿Ya tienes una cuenta?{' '}
-                  <Link to="/auth/sign-in" className="text-zinc-900 hover:underline font-semibold transition-colors">
+                  <Link to="/auth/sign-in" className="text-blue-600 hover:text-blue-700 hover:underline font-semibold transition-colors">
                     Inicia Sesión
                   </Link>
                 </p>

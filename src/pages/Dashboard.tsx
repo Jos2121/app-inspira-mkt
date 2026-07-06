@@ -64,21 +64,21 @@ export default function Dashboard() {
 
 function KpiCard({ title, value, icon: Icon, isLoading, delay }: any) {
   return (
-    <Card 
+    <Card
       className={cn(
         "group relative overflow-hidden border-zinc-200/60 bg-white/50 backdrop-blur-sm",
-        "transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]",
+        "transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(37,99,235,0.15)]",
         "animate-in fade-in slide-in-from-bottom-8 fill-both"
       )}
       style={{ animationDelay: delay }}
     >
       <div className="absolute top-0 right-0 p-4 opacity-0 transform translate-x-4 -translate-y-4 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-500">
-        <ArrowUpRight className="w-5 h-5 text-zinc-300" />
+        <ArrowUpRight className="w-5 h-5 text-blue-500 opacity-50" />
       </div>
       
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center group-hover:bg-zinc-950 group-hover:text-white transition-colors duration-500">
+          <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 group-hover:shadow-md group-hover:shadow-blue-600/30">
             <Icon className="h-5 w-5 text-zinc-500 group-hover:text-white transition-colors duration-500" />
           </div>
         </div>
@@ -96,7 +96,7 @@ function KpiCard({ title, value, icon: Icon, isLoading, delay }: any) {
       </CardContent>
       
       {/* Decorative tech line at the bottom */}
-      <div className="absolute bottom-0 left-0 h-1 bg-zinc-950 w-0 group-hover:w-full transition-all duration-700 ease-out"></div>
+      <div className="absolute bottom-0 left-0 h-1 bg-blue-600 w-0 group-hover:w-full transition-all duration-700 ease-out"></div>
     </Card>
   );
 }
