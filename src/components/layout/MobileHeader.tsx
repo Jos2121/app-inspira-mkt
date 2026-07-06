@@ -14,7 +14,7 @@ export function MobileHeader({ mobileMenuOpen, setMobileMenuOpen }: MobileHeader
         <img
           src="/logo.jpg"
           alt="Logo"
-          className="w-8 h-8 rounded-md object-cover border border-zinc-100 bg-white"
+          className="w-8 h-8 object-contain"
           onError={(e) => {
             e.currentTarget.src = 'https://placehold.co/100x100/2563eb/ffffff?text=L';
           }}
