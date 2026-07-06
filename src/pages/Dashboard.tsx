@@ -1,8 +1,9 @@
 import { useAuthSession } from '@/lib/auth-client';
 import { Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { DollarSign, ShoppingBag, Users, Activity } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DollarSign, ShoppingBag, Users, Activity, ArrowUpRight } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 export default function Dashboard() {
   const { data } = useAuthSession();
@@ -21,56 +22,81 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h2>
-        <p className="text-muted-foreground mt-1">Resumen general de tu negocio en el mes actual.</p>
+    <div className="space-y-8">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 fill-both">
+        <h2 className="text-3xl font-bold tracking-tight text-zinc-900">Dashboard</h2>
+        <p className="text-zinc-500 mt-2 font-medium">Resumen general de tu negocio en el mes actual.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard 
           title="Facturación Mensual" 
           value={kpis?.revenue ? `$${kpis.revenue.toLocaleString()}` : '$0.00'} 
           icon={DollarSign} 
-          isLoading={isLoading} 
+          isLoading={isLoading}
+          delay="100ms"
         />
         <KpiCard 
           title="Por Cobrar" 
           value={kpis?.receivables ? `$${kpis.receivables.toLocaleString()}` : '$0.00'} 
           icon={Activity} 
           isLoading={isLoading} 
+          delay="200ms"
         />
         <KpiCard 
           title="Ventas (Mes)" 
           value={kpis?.salesCount || '0'} 
           icon={ShoppingBag} 
           isLoading={isLoading} 
+          delay="300ms"
         />
         <KpiCard 
           title="Ticket Promedio" 
           value={kpis?.avgTicket ? `$${kpis.avgTicket.toLocaleString()}` : '$0.00'} 
           icon={Users} 
           isLoading={isLoading} 
+          delay="400ms"
         />
       </div>
     </div>
   );
 }
 
-function KpiCard({ title, value, icon: Icon, isLoading }: any) {
+function KpiCard({ title, value, icon: Icon, isLoading, delay }: any) {
   return (
-    <Card className="shadow-sm border-slate-200">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-slate-600">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-slate-400" />
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <div className="h-8 w-24 bg-slate-100 rounded animate-pulse"></div>
-        ) : (
-          <div className="text-2xl font-bold text-slate-900">{value}</div>
-        )}
+    <Card 
+      className={cn(
+        "group relative overflow-hidden border-zinc-200/60 bg-white/50 backdrop-blur-sm",
+        "transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]",
+        "animate-in fade-in slide-in-from-bottom-8 fill-both"
+      )}
+      style={{ animationDelay: delay }}
+    >
+      <div className="absolute top-0 right-0 p-4 opacity-0 transform translate-x-4 -translate-y-4 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-500">
+        <ArrowUpRight className="w-5 h-5 text-zinc-300" />
+      </div>
+      
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center group-hover:bg-zinc-950 group-hover:text-white transition-colors duration-500">
+            <Icon className="h-5 w-5 text-zinc-500 group-hover:text-white transition-colors duration-500" />
+          </div>
+        </div>
+        
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-zinc-500 tracking-wide uppercase">{title}</p>
+          {isLoading ? (
+            <div className="h-8 w-24 bg-zinc-200/50 rounded animate-pulse mt-2"></div>
+          ) : (
+            <div className="text-3xl font-bold text-zinc-900 font-mono tracking-tight">
+              {value}
+            </div>
+          )}
+        </div>
       </CardContent>
+      
+      {/* Decorative tech line at the bottom */}
+      <div className="absolute bottom-0 left-0 h-1 bg-zinc-950 w-0 group-hover:w-full transition-all duration-700 ease-out"></div>
     </Card>
   );
 }
