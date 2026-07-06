@@ -52,10 +52,18 @@ export function Sidebar({
 
         <div className={cn("p-8 hidden md:flex flex-col items-center transition-all duration-300", isCollapsed ? "p-4 mt-10" : "")}>
           <div className={cn(
-            "bg-blue-600 text-white flex items-center justify-center shadow-xl shadow-blue-600/20 transition-all duration-300 flex-shrink-0", 
+            "flex items-center justify-center shadow-md bg-white border border-zinc-100 transition-all duration-300 flex-shrink-0 overflow-hidden",
             isCollapsed ? "w-12 h-12 rounded-xl mb-0" : "w-14 h-14 rounded-2xl mb-4"
           )}>
-            <Command className={cn("transition-all duration-300", isCollapsed ? "w-6 h-6" : "w-7 h-7")} />
+            <img
+              src="/logo.jpg"
+              alt="Logo de la empresa"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Imagen temporal mientras subes tu archivo
+                e.currentTarget.src = 'https://placehold.co/100x100/2563eb/ffffff?text=Logo';
+              }}
+            />
           </div>
           
           <div className={cn(

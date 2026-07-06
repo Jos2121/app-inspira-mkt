@@ -11,7 +11,14 @@ export function MobileHeader({ mobileMenuOpen, setMobileMenuOpen }: MobileHeader
   return (
     <div className="md:hidden flex items-center justify-between p-4 glass sticky top-0 z-50">
       <div className="flex items-center gap-2 font-bold text-lg text-zinc-900">
-        <Command className="w-5 h-5 text-blue-600" />
+        <img
+          src="/logo.jpg"
+          alt="Logo"
+          className="w-8 h-8 rounded-md object-cover border border-zinc-100 bg-white"
+          onError={(e) => {
+            e.currentTarget.src = 'https://placehold.co/100x100/2563eb/ffffff?text=L';
+          }}
+        />
         <span>Gestión MVP</span>
       </div>
       <div className="flex items-center gap-2">
