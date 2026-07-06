@@ -4,10 +4,9 @@ import { orders } from '../../../db/schema';
 import { sql as drizzleSql, eq, and, gte, lt } from 'drizzle-orm';
 
 export default defineHandler(async (event) => {
-  // Check auth and role
+  // Check auth
   const userId = event.context.userId;
-  const userRole = event.context.userRole;
-  if (!userId || userRole !== 'Admin') {
+  if (!userId) {
     return new Response('Unauthorized', { status: 401 });
   }
 

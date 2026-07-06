@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { UserMenu } from '../UserMenu';
 
 export const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/', adminOnly: true },
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
   { icon: ShoppingCart, label: 'Órdenes', path: '/orders' },
   { icon: Users, label: 'Clientes', path: '/clients' },
   { icon: Package, label: 'Productos', path: '/products' },

@@ -1,17 +1,9 @@
-import { useAuthSession } from '@/lib/auth-client';
-import { Navigate } from 'react-router-dom';
 import { DollarSign, ShoppingBag, Users, Activity } from 'lucide-react';
 import { useDashboardKpis } from '@/hooks/useDashboard';
 import { KpiCard } from './dashboard/components/KpiCard';
 import { formatCurrency } from '@/lib/utils';
 
 export default function Dashboard() {
-  const { data } = useAuthSession();
-  
-  if (data?.user?.role === 'Operador') {
-    return <Navigate to="/orders" replace />;
-  }
-
   const { data: kpis, isLoading } = useDashboardKpis();
 
   return (
