@@ -1,0 +1,25 @@
+import { Menu, X, Command } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { UserMenu } from '../UserMenu';
+
+interface MobileHeaderProps {
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (val: boolean) => void;
+}
+
+export function MobileHeader({ mobileMenuOpen, setMobileMenuOpen }: MobileHeaderProps) {
+  return (
+    <div className="md:hidden flex items-center justify-between p-4 glass sticky top-0 z-50">
+      <div className="flex items-center gap-2 font-bold text-lg text-zinc-900">
+        <Command className="w-5 h-5 text-blue-600" />
+        <span>Gestión MVP</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <UserMenu />
+        <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          {mobileMenuOpen ? <X /> : <Menu />}
+        </Button>
+      </div>
+    </div>
+  );
+}
