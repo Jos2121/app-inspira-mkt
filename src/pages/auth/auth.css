@@ -1,22 +1,70 @@
-.auth-page-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f8fafc;
-  padding: 1rem;
+/* 
+  Auth CSS overrides to integrate Neon Auth's default UI 
+  seamlessly into our custom premium glassmorphism wrapper.
+*/
+
+/* 1. Remove the default Card appearance from AuthView */
+.auth-wrapper .border.bg-card.text-card-foreground.shadow-sm {
+  border: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+  max-width: 100% !important;
 }
 
-.auth-card-wrapper {
-  width: 100%;
-  max-width: 400px;
-  background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  padding: 2rem;
+/* 2. Hide the default header (Title and Description) since we built our own */
+.auth-wrapper .flex.flex-col.space-y-1\.5.p-6,
+.auth-wrapper .flex.flex-col.space-y-1\.5 {
+  display: none !important;
 }
 
-.auth-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
+/* 3. Remove default padding from the card content to prevent double-spacing */
+.auth-wrapper .p-6.pt-0 {
+  padding: 0 !important;
+}
+
+/* 4. Refine Inputs for a premium look */
+.auth-wrapper input {
+  height: 3rem !important;
+  border-radius: 0.75rem !important; /* 12px */
+  border-color: #e4e4e7 !important; /* zinc-200 */
+  background-color: #ffffff !important;
+  font-size: 0.875rem !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.auth-wrapper input:focus-visible {
+  outline: none !important;
+  border-color: #18181b !important; /* zinc-900 */
+  box-shadow: 0 0 0 4px rgba(24, 24, 27, 0.08) !important;
+}
+
+/* 5. Space out labels */
+.auth-wrapper label {
+  font-weight: 500 !important;
+  color: #3f3f46 !important; /* zinc-700 */
+  margin-bottom: 0.5rem !important;
+}
+
+/* 6. Refine the main Submit Button */
+.auth-wrapper button[type="submit"] {
+  height: 3rem !important;
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  background-color: #09090b !important; /* zinc-950 */
+  color: white !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  margin-top: 0.5rem !important;
+}
+
+.auth-wrapper button[type="submit"]:hover {
+  background-color: #27272a !important; /* zinc-800 */
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 25px -5px rgba(9, 9, 11, 0.25) !important;
+}
+
+/* 7. Hide default footer links of AuthView if they conflict with ours */
+.auth-wrapper .flex.items-center.p-6.pt-0,
+.auth-wrapper .text-sm.text-muted-foreground.text-center {
+  display: none !important;
 }
