@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/lib/utils';
 
 interface NewOrderSummaryProps {
   total: number;
@@ -13,16 +14,16 @@ export function NewOrderSummary({ total, onSubmit, isPending }: NewOrderSummaryP
       <div className="space-y-3 mb-6">
         <div className="flex justify-between text-zinc-400">
           <span>Subtotal</span>
-          <span className="font-mono">${total.toLocaleString()}</span>
+          <span className="font-mono">{formatCurrency(total)}</span>
         </div>
         <div className="flex justify-between text-zinc-400">
           <span>Impuestos (0%)</span>
-          <span className="font-mono">$0.00</span>
+          <span className="font-mono">{formatCurrency(0)}</span>
         </div>
         <div className="border-t border-zinc-800 my-4"></div>
         <div className="flex justify-between text-xl font-bold text-white">
           <span>Total</span>
-          <span className="font-mono text-blue-400">${total.toLocaleString()}</span>
+          <span className="font-mono text-blue-400">{formatCurrency(total)}</span>
         </div>
       </div>
       

@@ -5,7 +5,7 @@ import { Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Order } from '@/hooks/useOrders';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 
 interface OrderListProps {
   orders: Order[];
@@ -48,7 +48,7 @@ export function OrderList({ orders, isLoading }: OrderListProps) {
                 </TableCell>
                 <TableCell className="text-zinc-600">{format(new Date(order.createdAt), 'dd/MM/yyyy')}</TableCell>
                 <TableCell className="font-medium text-zinc-900">{order.client?.name}</TableCell>
-                <TableCell className="font-mono font-bold text-zinc-900">${Number(order.total).toLocaleString()}</TableCell>
+                <TableCell className="font-mono font-bold text-zinc-900">{formatCurrency(order.total)}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={cn("font-medium", getStatusColor(order.status))}>
                     {order.status}

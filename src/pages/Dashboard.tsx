@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { DollarSign, ShoppingBag, Users, Activity } from 'lucide-react';
 import { useDashboardKpis } from '@/hooks/useDashboard';
 import { KpiCard } from './dashboard/components/KpiCard';
+import { formatCurrency } from '@/lib/utils';
 
 export default function Dashboard() {
   const { data } = useAuthSession();
@@ -21,32 +22,32 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <KpiCard 
-          title="Facturación Mensual" 
-          value={kpis?.revenue ? `$${kpis.revenue.toLocaleString()}` : '$0.00'} 
-          icon={DollarSign} 
+        <KpiCard
+          title="Facturación Mensual"
+          value={kpis?.revenue ? formatCurrency(kpis.revenue) : formatCurrency(0)}
+          icon={DollarSign}
           isLoading={isLoading}
           delay="100ms"
         />
-        <KpiCard 
-          title="Por Cobrar" 
-          value={kpis?.receivables ? `$${kpis.receivables.toLocaleString()}` : '$0.00'} 
-          icon={Activity} 
-          isLoading={isLoading} 
+        <KpiCard
+          title="Por Cobrar"
+          value={kpis?.receivables ? formatCurrency(kpis.receivables) : formatCurrency(0)}
+          icon={Activity}
+          isLoading={isLoading}
           delay="200ms"
         />
-        <KpiCard 
-          title="Ventas (Mes)" 
-          value={kpis?.salesCount || '0'} 
-          icon={ShoppingBag} 
-          isLoading={isLoading} 
+        <KpiCard
+          title="Ventas (Mes)"
+          value={kpis?.salesCount || '0'}
+          icon={ShoppingBag}
+          isLoading={isLoading}
           delay="300ms"
         />
-        <KpiCard 
-          title="Ticket Promedio" 
-          value={kpis?.avgTicket ? `$${kpis.avgTicket.toLocaleString()}` : '$0.00'} 
-          icon={Users} 
-          isLoading={isLoading} 
+        <KpiCard
+          title="Ticket Promedio"
+          value={kpis?.avgTicket ? formatCurrency(kpis.avgTicket) : formatCurrency(0)}
+          icon={Users}
+          isLoading={isLoading}
           delay="400ms"
         />
       </div>

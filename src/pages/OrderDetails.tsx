@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useOrder, useUpdateOrderStatus } from '@/hooks/useOrders';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 
 export default function OrderDetails() {
   const { id } = useParams();
@@ -65,8 +65,8 @@ export default function OrderDetails() {
                   <TableRow key={item.id} className="border-zinc-100 hover:bg-transparent">
                     <TableCell className="font-medium text-zinc-900">{item.product?.name}</TableCell>
                     <TableCell className="text-zinc-600">{item.quantity}</TableCell>
-                    <TableCell className="text-zinc-600 font-mono">${Number(item.unitPrice).toLocaleString()}</TableCell>
-                    <TableCell className="text-right font-bold text-zinc-900 font-mono">${Number(item.subtotal).toLocaleString()}</TableCell>
+                    <TableCell className="text-zinc-600 font-mono">{formatCurrency(item.unitPrice)}</TableCell>
+                    <TableCell className="text-right font-bold text-zinc-900 font-mono">{formatCurrency(item.subtotal)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -74,7 +74,7 @@ export default function OrderDetails() {
             <div className="flex justify-end mt-6 pt-4 border-t border-zinc-100">
               <div className="text-right">
                 <span className="text-zinc-500 mr-4">Total de la Orden</span>
-                <span className="text-2xl font-bold text-blue-600 font-mono">${Number(order.total).toLocaleString()}</span>
+                <span className="text-2xl font-bold text-blue-600 font-mono">{formatCurrency(order.total)}</span>
               </div>
             </div>
           </div>

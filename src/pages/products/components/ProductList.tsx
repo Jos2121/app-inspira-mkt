@@ -2,6 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { Product } from '@/hooks/useProducts';
+import { formatCurrency } from '@/lib/utils';
 
 interface ProductListProps {
   products: Product[];
@@ -32,7 +33,7 @@ export function ProductList({ products, isLoading, isAdmin, onDelete }: ProductL
               <TableRow key={product.id} className="hover:bg-zinc-50/50 transition-colors">
                 <TableCell className="font-medium text-zinc-900">{product.name}</TableCell>
                 <TableCell className="text-zinc-600">{product.description || '-'}</TableCell>
-                <TableCell className="font-mono font-medium text-zinc-900">${Number(product.price).toLocaleString()}</TableCell>
+                <TableCell className="font-mono font-medium text-zinc-900">{formatCurrency(product.price)}</TableCell>
                 <TableCell className="text-right">
                   {isAdmin && (
                     <Button 

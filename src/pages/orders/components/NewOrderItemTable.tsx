@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Trash2, Plus } from 'lucide-react';
 import { Product } from '@/hooks/useProducts';
+import { formatCurrency } from '@/lib/utils';
 
 interface NewOrderItemTableProps {
   items: any[];
@@ -61,8 +62,8 @@ export function NewOrderItemTable({ items, products, onAddItem, onUpdateItem, on
                       onChange={(e) => onUpdateItem(index, 'quantity', parseInt(e.target.value) || 0)} 
                     />
                   </TableCell>
-                  <TableCell className="text-zinc-600 font-mono">${item.unitPrice.toLocaleString()}</TableCell>
-                  <TableCell className="font-bold text-zinc-900 font-mono">${(item.quantity * item.unitPrice).toLocaleString()}</TableCell>
+                  <TableCell className="text-zinc-600 font-mono">{formatCurrency(item.unitPrice)}</TableCell>
+                  <TableCell className="font-bold text-zinc-900 font-mono">{formatCurrency(item.quantity * item.unitPrice)}</TableCell>
                   <TableCell>
                     <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => onRemoveItem(index)}>
                       <Trash2 className="w-4 h-4" />
