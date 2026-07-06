@@ -55,9 +55,9 @@ export default function Products() {
     onError: () => toast.error('Error al eliminar producto')
   });
 
-  const filteredProducts = products?.filter((p: any) => 
+  const filteredProducts = Array.isArray(products) ? products.filter((p: any) =>
     p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  ) : [];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

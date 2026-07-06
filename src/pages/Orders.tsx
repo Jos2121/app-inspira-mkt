@@ -19,10 +19,10 @@ export default function Orders() {
     }
   });
 
-  const filteredOrders = orders?.filter((o: any) => 
+  const filteredOrders = Array.isArray(orders) ? orders.filter((o: any) =>
     o.client?.name.toLowerCase().includes(search.toLowerCase()) ||
     o.id.toLowerCase().includes(search.toLowerCase())
-  );
+  ) : [];
 
   const getStatusColor = (status: string) => {
     switch (status) {

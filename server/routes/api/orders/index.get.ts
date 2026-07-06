@@ -1,6 +1,6 @@
 import { defineHandler } from 'nitro';
-import { db } from '../../utils/db';
-import { orders, orderItems, clients } from '../../db/schema';
+import { db } from '../../../utils/db';
+import { orders, orderItems, clients } from '../../../db/schema';
 import { desc, eq } from 'drizzle-orm';
 
 export default defineHandler(async (event) => {

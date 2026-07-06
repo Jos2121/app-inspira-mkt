@@ -1,7 +1,7 @@
 import { defineHandler } from 'nitro';
 import { readBody, createError } from 'nitro/h3';
-import { db } from '../../utils/db';
-import { clients } from '../../db/schema';
+import { db } from '../../../utils/db';
+import { clients } from '../../../db/schema';
 import { eq } from 'drizzle-orm';
 
 export default defineHandler(async (event) => {

@@ -55,10 +55,10 @@ export default function Clients() {
     onError: () => toast.error('Error al eliminar cliente')
   });
 
-  const filteredClients = clients?.filter((c: any) => 
-    c.name.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredClients = Array.isArray(clients) ? clients.filter((c: any) =>
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.email?.toLowerCase().includes(search.toLowerCase())
-  );
+  ) : [];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

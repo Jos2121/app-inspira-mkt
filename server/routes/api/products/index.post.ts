@@ -1,7 +1,7 @@
 import { defineHandler } from 'nitro';
 import { readBody, createError } from 'nitro/h3';
-import { db } from '../../utils/db';
-import { products } from '../../db/schema';
+import { db } from '../../../utils/db';
+import { products } from '../../../db/schema';
 
 export default defineHandler(async (event) => {
   const body = await readBody(event);
