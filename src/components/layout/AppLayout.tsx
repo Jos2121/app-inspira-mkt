@@ -24,7 +24,7 @@ export function AppLayout() {
   const currentNav = navItems.find(i => location.pathname === i.path || (i.path !== '/' && location.pathname.startsWith(i.path)));
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-zinc-50 overflow-hidden">
+    <div className="h-screen w-full flex flex-col md:flex-row bg-zinc-50 overflow-hidden">
       <MobileHeader 
         mobileMenuOpen={mobileMenuOpen} 
         setMobileMenuOpen={setMobileMenuOpen} 
@@ -43,7 +43,7 @@ export function AppLayout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden md:py-4 md:pr-4 transition-all duration-300">
         <div className="h-full flex flex-col glass rounded-none md:rounded-3xl overflow-hidden relative">
-          <header className="hidden md:flex h-20 items-center justify-between px-10 border-b border-zinc-100/50 sticky top-0 z-10 bg-white/50 backdrop-blur-md">
+          <header className="hidden md:flex h-20 items-center justify-between px-10 border-b border-zinc-100/50 sticky top-0 z-10 bg-white/50 backdrop-blur-md shrink-0">
             <h1 className="text-2xl font-bold text-zinc-800 tracking-tight">
               {currentNav?.label || 'Vista General'}
             </h1>
