@@ -10,6 +10,8 @@ import { Task } from '@/hooks/useTasks';
 import { Trash2, CalendarClock, AlignLeft, User, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { toZonedTime, format as formatTz } from 'date-fns-tz';
+import { LIMA_TIMEZONE } from '@/lib/date-utils';
 
 interface TaskFormModalProps {
   task?: Task | null;
@@ -26,17 +28,36 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
   const { data: clients = [] } = useClients();
   const { data: partners = [] } = usePartners();
   
-  // Format for datetime-local: YYYY-MM-DDThh:mm
-  const formatForInput = (d: Date) => {
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  // Generar tiempos por defecto usando estrictamente la zona horaria de Lima
+  const getDefaultTimes = (selected?: Date) => {
+    if (selected) {
+      // Si se clickeó un día específico en el calendario, usamos ese día a las 09:00 AM
+      const dateStr = format(selected, 'yyyy-MM-dd');
+      return {
+        start: `${dateStr}T09:00`,
+        end: `${dateStr}T10:00`
+      };
+    }
+    
+    // Si es "Nueva Tarea" general, usamos la hora actual exacta en Lima
+    const now = new Date();
+    const limaDate = toZonedTime(now, LIMA_TIMEZONE);
+    // Para la hora de fin sumamos 1 hora (3600000 ms)
+    const limaEnd = new Date(limaDate.getTime() + 3600000);
+    
+    return {
+      start: formatTz(limaDate, "yyyy-MM-dd'T'HH:mm", { timeZone: LIMA_TIMEZONE }),
+      end: formatTz(limaEnd, "yyyy-MM-dd'T'HH:mm", { timeZone: LIMA_TIMEZONE })
+    };
   };
+
+  const initialTimes = getDefaultTimes(selectedDate);
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    startTime: formatForInput(new Date()),
-    endTime: formatForInput(new Date(Date.now() + 3600000)), // +1 hora
+    startTime: initialTimes.start,
+    endTime: initialTimes.end,
     partnerId: 'none',
     clientId: 'none',
     status: 'Pendiente'
@@ -56,15 +77,12 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
         status: task.status
       });
     } else {
-      const start = selectedDate ? new Date(selectedDate) : new Date();
-      if (selectedDate) start.setHours(9, 0, 0, 0); // Default a 9 AM
-      const end = new Date(start.getTime() + 3600000);
-      
+      const times = getDefaultTimes(selectedDate);
       setFormData({
         title: '',
         description: '',
-        startTime: formatForInput(start),
-        endTime: formatForInput(end),
+        startTime: times.start,
+        endTime: times.end,
         partnerId: 'none',
         clientId: 'none',
         status: 'Pendiente'
@@ -94,6 +112,7 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
   const formatDateTimeView = (isoString: string) => {
     if (!isoString) return '';
     try {
+      // El input guarda como YYYY-MM-DDTHH:mm (hora local). Al parsearlo, JS lo asume como hora local, lo cual es correcto visualmente.
       const d = new Date(isoString);
       return format(d, "d 'de' MMMM, yyyy - HH:mm", { locale: es });
     } catch (e) {

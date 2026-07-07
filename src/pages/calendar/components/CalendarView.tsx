@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Task } from '@/hooks/useTasks';
 import { cn } from '@/lib/utils';
 import { TaskFormModal } from './TaskFormModal';
+import { toZonedTime } from 'date-fns-tz';
+import { LIMA_TIMEZONE } from '@/lib/date-utils';
 
 interface CalendarViewProps {
   tasks: Task[];
@@ -20,14 +22,18 @@ interface CalendarViewProps {
 }
 
 export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, isPending, isDeleting }: CalendarViewProps) {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  
+  // Función helper para obtener el día "Hoy" basado estrictamente en Lima
+  const getLimaToday = () => toZonedTime(new Date(), LIMA_TIMEZONE);
+
+  const [currentDate, setCurrentDate] = useState(getLimaToday());
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
-  const today = () => setCurrentDate(new Date());
+  const today = () => setCurrentDate(getLimaToday());
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
@@ -69,6 +75,9 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
     setIsModalOpen(false);
   };
 
+  // Precalculamos "Hoy" en Lima para resaltar el día actual correctamente
+  const limaToday = getLimaToday();
+
   return (
     <div className="glass rounded-[2rem] border-zinc-200/60 shadow-sm overflow-hidden flex flex-col h-[750px]">
       
@@ -102,7 +111,7 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
         <div className="flex-1 grid grid-cols-7 auto-rows-fr overflow-y-auto">
           {days.map((day, i) => {
             const isCurrentMonth = isSameMonth(day, monthStart);
-            const isTodayDate = isSameDay(day, new Date());
+            const isTodayDate = isSameDay(day, limaToday); // Validado contra la hora de Lima
             
             // Filter tasks for this day (comparing YYYY-MM-DD)
             const dayTasks = tasks.filter(t => t.startTime.startsWith(format(day, 'yyyy-MM-dd')));
