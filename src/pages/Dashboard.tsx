@@ -20,6 +20,7 @@ export default function Dashboard() {
           icon={TrendingUp}
           isLoading={isLoading}
           delay="100ms"
+          colorVariant="emerald"
         />
         <KpiCard
           title="Gastos (Mes)"
@@ -27,6 +28,7 @@ export default function Dashboard() {
           icon={TrendingDown}
           isLoading={isLoading}
           delay="200ms"
+          colorVariant="rose"
         />
         <KpiCard
           title="Utilidad (Mes)"
@@ -34,6 +36,7 @@ export default function Dashboard() {
           icon={Wallet}
           isLoading={isLoading}
           delay="300ms"
+          colorVariant="blue"
         />
         <KpiCard
           title="Total Pacientes (Mes)"
@@ -41,6 +44,7 @@ export default function Dashboard() {
           icon={Users}
           isLoading={isLoading}
           delay="400ms"
+          colorVariant="indigo"
         />
       </div>
     </div>
