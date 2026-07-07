@@ -9,42 +9,127 @@ interface KpiCardProps {
   icon: React.ElementType;
   isLoading?: boolean;
   delay?: string;
+  subtitle?: string;
+  colorVariant?: 'blue' | 'emerald' | 'violet' | 'amber' | 'rose' | 'indigo';
 }
 
-export function KpiCard({ title, value, icon: Icon, isLoading, delay }: KpiCardProps) {
+export function KpiCard({ 
+  title, 
+  value, 
+  icon: Icon, 
+  isLoading, 
+  delay, 
+  subtitle = "Mes Actual", 
+  colorVariant = 'blue' 
+}: KpiCardProps) {
+  
+  const colorStyles = {
+    blue: {
+      bg: "bg-blue-50/30",
+      iconBg: "bg-blue-100 group-hover:bg-blue-600",
+      iconText: "text-blue-600 group-hover:text-white",
+      accent: "bg-blue-600",
+      glow: "shadow-blue-600/30",
+      text: "text-blue-700",
+      blob: "bg-blue-400/20"
+    },
+    emerald: {
+      bg: "bg-emerald-50/30",
+      iconBg: "bg-emerald-100 group-hover:bg-emerald-600",
+      iconText: "text-emerald-600 group-hover:text-white",
+      accent: "bg-emerald-600",
+      glow: "shadow-emerald-600/30",
+      text: "text-emerald-700",
+      blob: "bg-emerald-400/20"
+    },
+    violet: {
+      bg: "bg-violet-50/30",
+      iconBg: "bg-violet-100 group-hover:bg-violet-600",
+      iconText: "text-violet-600 group-hover:text-white",
+      accent: "bg-violet-600",
+      glow: "shadow-violet-600/30",
+      text: "text-violet-700",
+      blob: "bg-violet-400/20"
+    },
+    amber: {
+      bg: "bg-amber-50/30",
+      iconBg: "bg-amber-100 group-hover:bg-amber-600",
+      iconText: "text-amber-600 group-hover:text-white",
+      accent: "bg-amber-600",
+      glow: "shadow-amber-600/30",
+      text: "text-amber-700",
+      blob: "bg-amber-400/20"
+    },
+    rose: {
+      bg: "bg-rose-50/30",
+      iconBg: "bg-rose-100 group-hover:bg-rose-600",
+      iconText: "text-rose-600 group-hover:text-white",
+      accent: "bg-rose-600",
+      glow: "shadow-rose-600/30",
+      text: "text-rose-700",
+      blob: "bg-rose-400/20"
+    },
+    indigo: {
+      bg: "bg-indigo-50/30",
+      iconBg: "bg-indigo-100 group-hover:bg-indigo-600",
+      iconText: "text-indigo-600 group-hover:text-white",
+      accent: "bg-indigo-600",
+      glow: "shadow-indigo-600/30",
+      text: "text-indigo-700",
+      blob: "bg-indigo-400/20"
+    }
+  };
+
+  const style = colorStyles[colorVariant] || colorStyles.blue;
+
   return (
     <Card 
       className={cn(
-        "group relative overflow-hidden border-zinc-200/60 bg-white/50 backdrop-blur-sm",
-        "transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(37,99,235,0.15)]",
-        "animate-in fade-in slide-in-from-bottom-8 fill-both"
+        "group relative overflow-hidden rounded-[2rem] border-zinc-200/60 bg-white/70 backdrop-blur-xl",
+        "transition-all duration-500 ease-out hover:-translate-y-1.5 hover:shadow-xl",
+        "animate-in fade-in slide-in-from-bottom-8 fill-both",
+        style.bg
       )}
       style={{ animationDelay: delay }}
     >
-      <div className="absolute top-0 right-0 p-4 opacity-0 transform translate-x-4 -translate-y-4 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-500">
-        <ArrowUpRight className="w-5 h-5 text-blue-500 opacity-50" />
+      <div className="absolute top-0 right-0 p-5 opacity-0 transform translate-x-4 -translate-y-4 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-500 z-10">
+        <ArrowUpRight className={cn("w-6 h-6 opacity-70", style.text)} />
       </div>
       
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 group-hover:shadow-md group-hover:shadow-blue-600/30">
-            <Icon className="h-5 w-5 text-zinc-500 group-hover:text-white transition-colors duration-500" />
+      <div className={cn(
+        "absolute -right-8 -top-8 w-32 h-32 rounded-full blur-3xl transition-opacity duration-500 z-0",
+        style.blob
+      )}></div>
+      
+      <CardContent className="p-7 relative z-10">
+        <div className="flex items-center justify-between mb-6">
+          <div className={cn(
+            "w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:shadow-lg",
+            style.iconBg,
+            `group-hover:${style.glow}`
+          )}>
+            <Icon className={cn("h-7 w-7 transition-colors duration-500", style.iconText)} />
+          </div>
+          <div className="flex flex-col items-end">
+             <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 bg-white/80 border border-zinc-100 shadow-sm px-2.5 py-1 rounded-lg">
+               {subtitle}
+             </span>
           </div>
         </div>
         
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-zinc-500 tracking-wide uppercase">{title}</p>
+        <div className="space-y-1.5">
+          <h3 className="text-sm font-bold text-zinc-500 tracking-wide uppercase">{title}</h3>
           {isLoading ? (
-            <div className="h-8 w-24 bg-zinc-200/50 rounded animate-pulse mt-2"></div>
+            <div className="h-10 w-28 bg-zinc-200/50 rounded-lg animate-pulse mt-2"></div>
           ) : (
-            <div className="text-3xl font-bold text-zinc-900 font-mono tracking-tight">
+            <div className="text-4xl font-extrabold text-zinc-900 font-mono tracking-tighter drop-shadow-sm">
               {value}
             </div>
           )}
         </div>
       </CardContent>
       
-      <div className="absolute bottom-0 left-0 h-1 bg-blue-600 w-0 group-hover:w-full transition-all duration-700 ease-out"></div>
+      <div className={cn("absolute bottom-0 left-0 h-1.5 w-0 group-hover:w-full transition-all duration-700 ease-out", style.accent)}></div>
     </Card>
   );
 }
