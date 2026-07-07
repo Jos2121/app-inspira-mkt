@@ -58,6 +58,16 @@ export const dailyLogs = pgTable('daily_logs', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
+export const transactions = pgTable('transactions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  type: text('type').notNull(), // 'Ingreso' o 'Gasto'
+  category: text('category').notNull(),
+  amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
+  date: text('date').notNull(),
+  description: text('description'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
 // Relations
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   client: one(clients, {

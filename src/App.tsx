@@ -13,6 +13,7 @@ import Orders from "./pages/Orders";
 import NewOrder from "./pages/NewOrder";
 import OrderDetails from "./pages/OrderDetails";
 import Goals from "./pages/goals/Goals";
+import Finance from "./pages/finance/Finance";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             
             <Route element={<AppLayout />}>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/finance" element={<Finance />} />
               <Route path="/clients" element={<Clients />} />
               <Route path="/products" element={<Products />} />
               <Route path="/orders" element={<Orders />} />
