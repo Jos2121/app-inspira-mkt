@@ -135,8 +135,9 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
                 {/* Tasks container */}
                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-1">
                   {dayTasks.map(task => {
-                    // Extraemos la hora directamente del string "YYYY-MM-DDTHH:mm" sin usar Date()
-                    const timeString = task.startTime.includes('T') ? task.startTime.split('T')[1] : '';
+                    // Extracción robusta de la hora, normalizando espacios a 'T'
+                    const parts = task.startTime.replace(' ', 'T').split('T');
+                    const timeString = parts.length > 1 ? parts[1].substring(0, 5) : '';
                     
                     return (
                       <div 
@@ -148,7 +149,7 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
                         )}
                         title={`${task.title} - ${timeString}`}
                       >
-                        <span className="font-bold mr-1 opacity-70">{timeString}</span>
+                        {timeString && <span className="font-bold mr-1 opacity-70">{timeString}</span>}
                         {task.title}
                       </div>
                     )

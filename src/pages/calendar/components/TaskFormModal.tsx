@@ -102,13 +102,16 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
   const selectedPartner = partners.find(p => p.id === formData.partnerId);
   const selectedClient = clients.find(c => c.id === formData.clientId);
 
-  // Parseamos el string manualmente para evitar que Date() interprete la zona horaria
+  // Extracción robusta de la hora
   const formatDateTimeView = (isoString: string) => {
     if (!isoString) return '';
     try {
-      const parts = isoString.split('T');
+      // Normalizamos reemplazando posibles espacios con 'T' para separar correctamente
+      const normalized = isoString.replace(' ', 'T');
+      const parts = normalized.split('T');
+      
       const datePart = parts[0];
-      const timePart = parts[1] || '';
+      const timePart = parts.length > 1 ? parts[1].substring(0, 5) : ''; // Toma solo HH:mm
       
       const [year, month, day] = datePart.split('-');
       // Ponemos 12:00:00 como hora base para evitar que desfases locales salten al día anterior
