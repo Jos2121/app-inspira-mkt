@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Target, Wallet, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { LayoutDashboard, Users, Target, Wallet, PanelLeftClose, PanelLeft, UserSquare2, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -7,9 +7,11 @@ import { UserMenu } from '../UserMenu';
 
 export const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-  { icon: Wallet, label: 'Finanzas', path: '/finance' },
+  { icon: CalendarDays, label: 'Calendario', path: '/calendar' },
   { icon: Target, label: 'Metas pacientes', path: '/goals' },
+  { icon: Wallet, label: 'Finanzas', path: '/finance' },
   { icon: Users, label: 'Clientes', path: '/clients' },
+  { icon: UserSquare2, label: 'Staff / Socios', path: '/partners' },
 ];
 
 interface SidebarProps {

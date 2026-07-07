@@ -15,6 +15,15 @@ export const appRoles = pgTable('app_roles', {
   role: text('role').notNull(),
 });
 
+export const partners = pgTable('partners', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  role: text('role').notNull(),
+  phone: text('phone'),
+  status: text('status').notNull().default('Activo'), // Activo, Inactivo
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
 export const goals = pgTable('goals', {
   id: uuid('id').primaryKey().defaultRandom(),
   clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }),
@@ -42,18 +51,29 @@ export const transactions = pgTable('transactions', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
+export const tasks = pgTable('tasks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: text('title').notNull(),
+  description: text('description'),
+  startTime: text('start_time').notNull(), 
+  endTime: text('end_time').notNull(),
+  partnerId: uuid('partner_id').references(() => partners.id, { onDelete: 'set null' }),
+  clientId: uuid('client_id').references(() => clients.id, { onDelete: 'set null' }),
+  status: text('status').notNull().default('Pendiente'), // Pendiente, En Proceso, Completada
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
 // Relations
 export const goalsRelations = relations(goals, ({ one, many }) => ({
-  client: one(clients, {
-    fields: [goals.clientId],
-    references: [clients.id],
-  }),
+  client: one(clients, { fields: [goals.clientId], references: [clients.id] }),
   dailyLogs: many(dailyLogs),
 }));
 
 export const dailyLogsRelations = relations(dailyLogs, ({ one }) => ({
-  goal: one(goals, {
-    fields: [dailyLogs.goalId],
-    references: [goals.id],
-  }),
+  goal: one(goals, { fields: [dailyLogs.goalId], references: [goals.id] }),
+}));
+
+export const tasksRelations = relations(tasks, ({ one }) => ({
+  partner: one(partners, { fields: [tasks.partnerId], references: [partners.id] }),
+  client: one(clients, { fields: [tasks.clientId], references: [clients.id] }),
 }));
