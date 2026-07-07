@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { AuthView } from '@neondatabase/auth/react';
-import { Command } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import './auth.css';
 
 export function AuthPage() {
@@ -14,11 +14,16 @@ export function AuthPage() {
       <div className="w-full max-w-[440px] animate-in fade-in zoom-in-95 duration-700 fill-both relative z-10">
         
         {/* Logo and Brand */}
-        <div className="flex flex-col items-center gap-4 mb-8 justify-center">
-          <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/30 border border-blue-500">
-            <Command className="w-8 h-8" />
+        <div className="flex flex-col items-center gap-5 mb-8 justify-center group">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-[1.5rem] flex items-center justify-center shadow-xl shadow-blue-500/30 border border-blue-400/50 relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
+            {/* Efecto de brillo superior (Glass reflection) */}
+            <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(to_bottom_right,rgba(255,255,255,0.3),transparent_50%)]"></div>
+            <Sparkles className="w-10 h-10 relative z-10" strokeWidth={1.5} />
           </div>
-          <span className="font-bold text-3xl tracking-tight text-zinc-900">Gestión MVP</span>
+          <div className="flex flex-col items-center">
+            <span className="font-extrabold text-3xl tracking-tight text-zinc-900">Gestión MVP</span>
+            <span className="text-xs font-bold text-blue-600 tracking-widest uppercase mt-1">Inspira</span>
+          </div>
         </div>
 
         {/* Form Container (Glassmorphism) */}
