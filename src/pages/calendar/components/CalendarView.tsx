@@ -1,11 +1,9 @@
-import { useState } from 'react';
-import { 
-  format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, 
-  isSameMonth, isSameDay, eachDayOfInterval 
-} from 'date-fns';
+import { useState, useRef, useEffect } from 'react';
+import { format, addDays, subDays, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Task } from '@/hooks/useTasks';
 import { cn } from '@/lib/utils';
 import { TaskFormModal } from './TaskFormModal';
@@ -24,37 +22,41 @@ interface CalendarViewProps {
 export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, isPending, isDeleting }: CalendarViewProps) {
   
   const getLimaToday = () => toZonedTime(new Date(), LIMA_TIMEZONE);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const [currentDate, setCurrentDate] = useState(getLimaToday());
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-  const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
+  // Auto-scroll a las 7:00 AM (420 pixeles)
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 7 * 60;
+    }
+  }, []);
+
+  const nextDay = () => setCurrentDate(addDays(currentDate, 1));
+  const prevDay = () => setCurrentDate(subDays(currentDate, 1));
   const today = () => setCurrentDate(getLimaToday());
 
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
-
-  const dateFormat = "MMMM yyyy";
-  const days = eachDayOfInterval({ start: startDate, end: endDate });
-
-  const weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  const targetDateStr = format(currentDate, 'yyyy-MM-dd');
+  const limaToday = getLimaToday();
+  const isCurrentDay = isSameDay(currentDate, limaToday);
 
   const getStatusColor = (status: string) => {
     switch(status) {
-      case 'Pendiente': return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'En Proceso': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Completada': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      default: return 'bg-zinc-100 text-zinc-800 border-zinc-200';
+      case 'Pendiente': return 'bg-amber-100/95 text-amber-900 border-amber-300';
+      case 'En Proceso': return 'bg-blue-100/95 text-blue-900 border-blue-300';
+      case 'Completada': return 'bg-emerald-100/95 text-emerald-900 border-emerald-300';
+      default: return 'bg-zinc-100/95 text-zinc-900 border-zinc-300';
     }
   };
 
-  const handleDayClick = (day: Date) => {
-    setSelectedDate(day);
+  const handleHourClick = (hour: number) => {
+    const newDate = new Date(currentDate);
+    newDate.setHours(hour, 0, 0, 0);
+    setSelectedDate(newDate);
     setSelectedTask(null);
     setIsModalOpen(true);
   };
@@ -74,90 +76,159 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
     setIsModalOpen(false);
   };
 
-  const limaToday = getLimaToday();
+  // Helper para extraer los minutos desde las 00:00 del string original
+  const getMinutesFromMidnight = (dateString: string) => {
+    const normalized = dateString.replace(' ', 'T');
+    const [datePart, timePart] = normalized.split('T');
+    
+    if (datePart < targetDateStr) return 0; // Inició antes de hoy
+    if (datePart > targetDateStr) return 24 * 60; // Termina después de hoy
+    
+    const [h, m] = (timePart || "00:00").split(':').map(Number);
+    return h * 60 + (m || 0);
+  };
+
+  // Filtrar las tareas que caen en el día seleccionado
+  const dayTasks = tasks.filter(t => {
+    const startNorm = t.startTime.replace(' ', 'T').split('T')[0];
+    const endNorm = t.endTime.replace(' ', 'T').split('T')[0];
+    return startNorm <= targetDateStr && endNorm >= targetDateStr;
+  });
+
+  // Calcular las posiciones y superposiciones
+  const processedTasks = dayTasks.sort((a, b) => {
+    return getMinutesFromMidnight(a.startTime) - getMinutesFromMidnight(b.startTime);
+  }).map((task, index, array) => {
+    const startMins = getMinutesFromMidnight(task.startTime);
+    const endMins = getMinutesFromMidnight(task.endTime);
+    
+    // Contar tareas anteriores con las que se cruza (para visualización en cascada)
+    let overlapIndex = 0;
+    for (let i = 0; i < index; i++) {
+      if (array[i].endMins > startMins) {
+        overlapIndex++;
+      }
+    }
+    overlapIndex = Math.min(overlapIndex, 4); // Límite máximo de cascada
+    
+    return { ...task, startMins, endMins, overlapIndex };
+  });
+
+  const hours = Array.from({ length: 24 }, (_, i) => i);
 
   return (
     <div className="glass rounded-[2rem] border-zinc-200/60 shadow-sm overflow-hidden flex flex-col h-[750px]">
       
-      {/* Calendar Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-white/50">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold text-zinc-800 capitalize">
-            {format(currentDate, dateFormat, { locale: es })}
-          </h2>
+      {/* Cabecera y Filtros */}
+      <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-b border-zinc-100 bg-white/50 gap-4">
+        <h2 className="text-xl font-bold text-zinc-800 capitalize whitespace-nowrap">
+          {format(currentDate, "EEEE, d 'de' MMMM", { locale: es })}
+        </h2>
+        
+        <div className="flex flex-wrap items-center gap-2 justify-center w-full sm:w-auto">
+          <Input
+            type="date"
+            value={targetDateStr}
+            onChange={(e) => {
+              if (e.target.value) {
+                const [y, m, d] = e.target.value.split('-').map(Number);
+                setCurrentDate(new Date(y, m - 1, d));
+              }
+            }}
+            className="w-[140px] h-9 bg-white cursor-pointer focus-visible:ring-blue-600/20"
+          />
+          
           <div className="flex items-center bg-zinc-100/50 rounded-xl p-1 border border-zinc-200/50">
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={prevMonth}><ChevronLeft className="w-4 h-4" /></Button>
-            <Button variant="ghost" size="sm" className="h-8 rounded-lg text-xs font-semibold px-3" onClick={today}>Hoy</Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={nextMonth}><ChevronRight className="w-4 h-4" /></Button>
+            <Button variant="ghost" size="icon" className="h-7 w-8 rounded-lg" onClick={prevDay}>
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" className="h-7 rounded-lg text-xs font-semibold px-3" onClick={today}>
+              Hoy
+            </Button>
+            <Button variant="ghost" size="icon" className="h-7 w-8 rounded-lg" onClick={nextDay}>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
           </div>
+          
+          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 ml-2" onClick={() => { setSelectedDate(undefined); setSelectedTask(null); setIsModalOpen(true); }}>
+            <Plus className="w-4 h-4 mr-1.5" /> Tarea
+          </Button>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20" onClick={() => { setSelectedDate(undefined); setSelectedTask(null); setIsModalOpen(true); }}>
-          <Plus className="w-4 h-4 mr-2" /> Nueva Tarea
-        </Button>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="flex-1 flex flex-col bg-zinc-50/30 overflow-hidden">
-        {/* Days Header */}
-        <div className="grid grid-cols-7 border-b border-zinc-100 bg-white/50">
-          {weekDays.map(day => (
-            <div key={day} className="py-2 text-center text-xs font-bold text-zinc-500 tracking-wider">{day}</div>
-          ))}
-        </div>
-        
-        {/* Days Grid */}
-        <div className="flex-1 grid grid-cols-7 auto-rows-fr overflow-y-auto">
-          {days.map((day, i) => {
-            const isCurrentMonth = isSameMonth(day, monthStart);
-            const isTodayDate = isSameDay(day, limaToday);
-            
-            const dayTasks = tasks.filter(t => t.startTime.startsWith(format(day, 'yyyy-MM-dd')));
-
-            return (
-              <div 
-                key={day.toString()} 
-                onClick={() => handleDayClick(day)}
-                className={cn(
-                  "min-h-[100px] border-b border-r border-zinc-100/80 p-1.5 transition-colors hover:bg-blue-50/50 cursor-pointer flex flex-col gap-1",
-                  !isCurrentMonth && "bg-zinc-50/50 text-zinc-400 opacity-60",
-                  (i + 1) % 7 === 0 && "border-r-0"
-                )}
-              >
-                <div className="flex justify-between items-start">
-                  <span className={cn(
-                    "text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full mb-1",
-                    isTodayDate ? "bg-blue-600 text-white shadow-md shadow-blue-600/30" : "text-zinc-600"
-                  )}>
-                    {format(day, 'd')}
-                  </span>
-                </div>
-                
-                {/* Tasks container */}
-                <div className="flex-1 overflow-y-auto no-scrollbar space-y-1">
-                  {dayTasks.map(task => {
-                    // Extracción robusta de la hora, normalizando espacios a 'T'
-                    const parts = task.startTime.replace(' ', 'T').split('T');
-                    const timeString = parts.length > 1 ? parts[1].substring(0, 5) : '';
-                    
-                    return (
-                      <div 
-                        key={task.id}
-                        onClick={(e) => handleTaskClick(e, task)}
-                        className={cn(
-                          "text-[10px] px-1.5 py-1 rounded-md font-medium border truncate transition-transform hover:scale-[1.02]",
-                          getStatusColor(task.status)
-                        )}
-                        title={`${task.title} - ${timeString}`}
-                      >
-                        {timeString && <span className="font-bold mr-1 opacity-70">{timeString}</span>}
-                        {task.title}
-                      </div>
-                    )
-                  })}
-                </div>
+      {/* Área de la línea de tiempo */}
+      <div className="flex-1 overflow-y-auto bg-zinc-50/30 no-scrollbar relative" ref={scrollRef}>
+        <div className="relative" style={{ height: 1440 }}> {/* 24 horas x 60px */}
+          
+          {/* Líneas de las horas */}
+          {hours.map(h => (
+            <div key={h} className="absolute w-full flex border-b border-zinc-100/80" style={{ top: h * 60, height: 60 }}>
+              <div className="w-20 text-xs font-bold text-zinc-400 text-right pr-3 pt-1.5 bg-white/50 border-r border-zinc-100">
+                {h.toString().padStart(2, '0')}:00
               </div>
-            );
-          })}
+              <div 
+                className="flex-1 cursor-pointer hover:bg-blue-50/40 transition-colors"
+                onClick={() => handleHourClick(h)}
+              ></div>
+            </div>
+          ))}
+
+          {/* Indicador de Hora Actual */}
+          {isCurrentDay && (
+            <div 
+              className="absolute left-20 right-0 border-t-[2px] border-red-500 z-20 pointer-events-none" 
+              style={{ top: limaToday.getHours() * 60 + limaToday.getMinutes() }}
+            >
+              <div className="absolute -left-1.5 -top-[5px] w-2.5 h-2.5 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.6)]"></div>
+            </div>
+          )}
+
+          {/* Tareas */}
+          <div className="absolute left-20 right-0 top-0 bottom-0 pointer-events-none">
+            {processedTasks.map(task => {
+              const top = task.startMins;
+              const height = Math.max(task.endMins - task.startMins, 25); // Mínimo 25px para que se pueda hacer clic
+              
+              const startDisplay = task.startTime.replace(' ', 'T').split('T')[1]?.substring(0, 5);
+              const endDisplay = task.endTime.replace(' ', 'T').split('T')[1]?.substring(0, 5);
+
+              return (
+                <div
+                  key={task.id}
+                  onClick={(e) => handleTaskClick(e, task)}
+                  className={cn(
+                    "absolute rounded-lg p-2 border shadow-sm cursor-pointer pointer-events-auto transition-transform hover:scale-[1.01]",
+                    getStatusColor(task.status)
+                  )}
+                  style={{ 
+                    top, 
+                    height, 
+                    left: 8 + (task.overlapIndex * 24), 
+                    right: 12,
+                    zIndex: 10 + task.overlapIndex
+                  }}
+                >
+                  <div className="flex flex-col h-full overflow-hidden">
+                    <div className="text-xs font-bold truncate leading-tight">{task.title}</div>
+                    
+                    {height >= 45 && (
+                      <>
+                        <div className="text-[10px] font-mono font-semibold opacity-70 mt-1">
+                          {startDisplay} - {endDisplay}
+                        </div>
+                        {task.description && (
+                          <div className="text-[10px] truncate opacity-80 mt-0.5 leading-tight">
+                            {task.description}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
         </div>
       </div>
 

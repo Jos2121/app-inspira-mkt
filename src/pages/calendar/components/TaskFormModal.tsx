@@ -31,9 +31,15 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
   const getDefaultTimes = (selected?: Date) => {
     if (selected) {
       const dateStr = format(selected, 'yyyy-MM-dd');
+      const startHour = format(selected, 'HH:mm');
+      
+      const endHourDate = new Date(selected);
+      endHourDate.setHours(selected.getHours() + 1);
+      const endHour = format(endHourDate, 'HH:mm');
+      
       return {
-        start: `${dateStr}T09:00`,
-        end: `${dateStr}T10:00`
+        start: `${dateStr}T${startHour}`,
+        end: `${dateStr}T${endHour}`
       };
     }
     
@@ -106,15 +112,13 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
   const formatDateTimeView = (isoString: string) => {
     if (!isoString) return '';
     try {
-      // Normalizamos reemplazando posibles espacios con 'T' para separar correctamente
       const normalized = isoString.replace(' ', 'T');
       const parts = normalized.split('T');
       
       const datePart = parts[0];
-      const timePart = parts.length > 1 ? parts[1].substring(0, 5) : ''; // Toma solo HH:mm
+      const timePart = parts.length > 1 ? parts[1].substring(0, 5) : ''; 
       
       const [year, month, day] = datePart.split('-');
-      // Ponemos 12:00:00 como hora base para evitar que desfases locales salten al día anterior
       const d = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10), 12, 0, 0);
       const formattedDate = format(d, "d 'de' MMMM, yyyy", { locale: es });
       
@@ -135,7 +139,6 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           
           {isEditMode ? (
-            /* VISTA DE RESUMEN (MODO EDICIÓN) */
             <div className="space-y-5 mb-4">
               <div>
                 <h3 className="text-xl font-bold text-zinc-900 leading-tight">{formData.title}</h3>
@@ -174,7 +177,6 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
               </div>
             </div>
           ) : (
-            /* VISTA DE FORMULARIO (MODO CREACIÓN) */
             <>
               <div className="space-y-2">
                 <Label>Título *</Label>
@@ -242,7 +244,6 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
             </>
           )}
 
-          {/* ESTADO DE LA TAREA (SIEMPRE EDITABLE) */}
           <div className="space-y-2 pt-2">
             <Label>{isEditMode ? 'Actualizar Estado' : 'Estado de la Tarea'}</Label>
             <Select value={formData.status} onValueChange={v => setFormData({...formData, status: v})}>
@@ -255,7 +256,6 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
             </Select>
           </div>
           
-          {/* BOTONES DE ACCIÓN */}
           <div className="flex gap-3 pt-4 mt-2 border-t border-zinc-100">
             {isEditMode && (
               <Button 
