@@ -99,10 +99,7 @@ export function GoalsChart() {
               <RechartsTooltip 
                 cursor={{ fill: '#f4f4f5' }}
                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '12px' }}
-                formatter={(value: number, name: string) => [
-                  value, 
-                  name === 'meta' ? 'Meta (Pacientes)' : 'Logrado (Pacientes)'
-                ]}
+                formatter={(value: number, name: string) => [value, name]}
               />
               <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
               <Bar dataKey="meta" name="Meta (Pacientes)" fill="#94a3b8" radius={[4, 4, 0, 0]} maxBarSize={40} />
