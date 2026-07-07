@@ -8,7 +8,7 @@ import { UserMenu } from '../UserMenu';
 export const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
   { icon: ShoppingCart, label: 'Órdenes', path: '/orders' },
-  { icon: Target, label: 'Metas', path: '/goals' },
+  { icon: Target, label: 'Metas pacientes', path: '/goals' },
   { icon: Users, label: 'Clientes', path: '/clients' },
   { icon: Package, label: 'Productos', path: '/products' },
 ];
@@ -61,7 +61,6 @@ export function Sidebar({
               alt="Logo de la empresa"
               className="w-full h-full object-contain"
               onError={(e) => {
-                // Imagen temporal mientras subes tu archivo
                 e.currentTarget.src = 'https://placehold.co/100x100/2563eb/ffffff?text=Logo';
               }}
             />
