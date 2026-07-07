@@ -2,6 +2,7 @@ import { useTransactions, useDeleteTransaction } from '@/hooks/useFinance';
 import { TransactionFormModal } from './components/TransactionFormModal';
 import { FinanceSummary } from './components/FinanceSummary';
 import { TransactionList } from './components/TransactionList';
+import { FinanceChart } from './components/FinanceChart';
 
 export default function Finance() {
   const { data: transactions = [], isLoading } = useTransactions();
@@ -19,6 +20,10 @@ export default function Finance() {
 
       <div className="animate-in fade-in duration-700 delay-100 fill-both">
         <FinanceSummary transactions={transactions} isLoading={isLoading} />
+      </div>
+
+      <div className="animate-in fade-in duration-700 delay-150 fill-both mt-8">
+        <FinanceChart transactions={transactions} />
       </div>
 
       <div className="animate-in fade-in duration-700 delay-200 fill-both pt-4">
