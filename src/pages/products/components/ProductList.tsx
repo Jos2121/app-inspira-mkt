@@ -28,7 +28,7 @@ export function ProductList({ products, isLoading, isAdmin, onDelete, onEdit }: 
           {isLoading ? (
             <TableRow><TableCell colSpan={4} className="text-center py-8 text-zinc-500">Cargando productos...</TableCell></TableRow>
           ) : products.length === 0 ? (
-            <TableRow><TableCell colSpan={4} className="text-center py-8 text-zinc-500">No se encontraron productos</TableRow>
+            <TableRow><TableCell colSpan={4} className="text-center py-8 text-zinc-500">No se encontraron productos</TableCell></TableRow>
           ) : (
             products.map((product) => (
               <TableRow key={product.id} className="hover:bg-zinc-50/50 transition-colors">
