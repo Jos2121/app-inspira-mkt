@@ -6,14 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { useClients } from '@/hooks/useClients';
-import { useGoals } from '@/hooks/useGoals';
+import { useCreateGoal } from '@/hooks/useGoals';
 import { toast } from 'sonner';
 
 export function CreateGoalModal() {
   const [open, setOpen] = useState(false);
   const [clientId, setClientId] = useState('');
   const { data: clients } = useClients();
-  const addGoal = useGoals(state => state.addGoal);
+  const createMutation = useCreateGoal();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,16 +31,17 @@ export function CreateGoalModal() {
       return;
     }
 
-    addGoal({
+    createMutation.mutate({
       clientId,
       monthYear: formData.get('monthYear') as string,
       targetPatients,
       costPerPatient,
+    }, {
+      onSuccess: () => {
+        setOpen(false);
+        setClientId('');
+      }
     });
-
-    toast.success('Meta creada exitosamente');
-    setOpen(false);
-    setClientId('');
   };
 
   return (
@@ -85,8 +86,8 @@ export function CreateGoalModal() {
               </div>
             </div>
           </div>
-          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-11 mt-4">
-            Guardar Meta
+          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-11 mt-4" disabled={createMutation.isPending}>
+            {createMutation.isPending ? 'Guardando...' : 'Guardar Meta'}
           </Button>
         </form>
       </DialogContent>

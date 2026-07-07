@@ -1,4 +1,4 @@
-import { useGoals } from '@/hooks/useGoals';
+import { useGoals, useDeleteGoal } from '@/hooks/useGoals';
 import { useClients } from '@/hooks/useClients';
 import { Progress } from '@/components/ui/progress';
 import { formatCurrency, cn } from '@/lib/utils';
@@ -9,8 +9,18 @@ import { DailyLogModal } from './DailyLogModal';
 import { Button } from '@/components/ui/button';
 
 export function GoalList() {
-  const { goals, deleteGoal } = useGoals();
+  const { data: goals = [], isLoading } = useGoals();
+  const deleteMutation = useDeleteGoal();
   const { data: clients } = useClients();
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-20 bg-white/40 glass rounded-3xl border border-dashed border-zinc-200/60">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-zinc-500 font-medium">Cargando metas...</p>
+      </div>
+    );
+  }
 
   if (goals.length === 0) {
     return (
@@ -26,10 +36,12 @@ export function GoalList() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {goals.map((goal) => {
         const client = clients?.find(c => c.id === goal.clientId);
-        const currentPatients = goal.dailyLogs.reduce((acc, log) => acc + log.count, 0);
+        const currentPatients = goal.dailyLogs?.reduce((acc, log) => acc + log.count, 0) || 0;
         const progressPercentage = Math.min((currentPatients / goal.targetPatients) * 100, 100);
-        const earnedMoney = currentPatients * goal.costPerPatient;
-        const projectedMoney = goal.targetPatients * goal.costPerPatient;
+        
+        const costVal = Number(goal.costPerPatient);
+        const earnedMoney = currentPatients * costVal;
+        const projectedMoney = goal.targetPatients * costVal;
         
         // Colores dinámicos basados en el progreso
         const progressColor = progressPercentage >= 100 ? "[&>div]:bg-emerald-500" : progressPercentage > 50 ? "[&>div]:bg-blue-500" : "[&>div]:bg-amber-500";
@@ -51,7 +63,8 @@ export function GoalList() {
                 variant="ghost" 
                 size="icon" 
                 className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 hover:bg-red-50 -mt-2 -mr-2"
-                onClick={() => { if(confirm('¿Eliminar esta meta?')) deleteGoal(goal.id); }}
+                onClick={() => { if(confirm('¿Eliminar esta meta?')) deleteMutation.mutate(goal.id); }}
+                disabled={deleteMutation.isPending}
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
@@ -96,7 +109,7 @@ export function GoalList() {
               {/* Action */}
               <div className="pt-2 flex justify-between items-center">
                 <span className="text-xs text-zinc-400 font-medium">
-                  {goal.dailyLogs.length} registros
+                  {goal.dailyLogs?.length || 0} registros
                 </span>
                 <DailyLogModal goalId={goal.id} />
               </div>
