@@ -57,8 +57,8 @@ export function TransactionList({ transactions, isLoading, onDelete, isDeleting 
   }, [transactions]);
 
   // Formatear "2024-07" a "Julio 2024"
-  const formatMonthYear = (yyyyMM: string) => {
-    const [year, month] = yyyMM.split('-');
+  const formatMonthYear = (yearMonth: string) => {
+    const [year, month] = yearMonth.split('-');
     const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     const monthName = months[parseInt(month, 10) - 1];
     return `${monthName} ${year}`;
