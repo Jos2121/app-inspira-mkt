@@ -7,8 +7,36 @@ import { Target, TrendingUp, Users, Trash2, History, Search, X } from 'lucide-re
 import { DailyLogModal } from './DailyLogModal';
 import { Button } from '@/components/ui/button';
 import { LogHistoryModal } from './LogHistoryModal';
-import { formatLocalDateString } from '@/lib/date-utils';
+import { getCurrentDateLimaISO, formatLocalDateString } from '@/lib/date-utils';
 import { Input } from '@/components/ui/input';
+import { getDaysInMonth } from 'date-fns';
+
+// Helper para calcular el ritmo esperado hasta la fecha actual
+function calculatePacing(monthYear: string, targetPatients: number) {
+  const todayISO = getCurrentDateLimaISO(); // Ej: 'YYYY-MM-DD'
+  const todayParts = todayISO.split('-');
+  const todayDay = parseInt(todayParts[2], 10);
+  const currentMonthStr = todayISO.substring(0, 7);
+
+  const [goalYear, goalMonth] = monthYear.split('-');
+  // Usamos un Date local seguro (día 1) para contar cuántos días tiene el mes
+  const goalDate = new Date(parseInt(goalYear, 10), parseInt(goalMonth, 10) - 1, 1);
+  const totalDays = getDaysInMonth(goalDate);
+
+  let elapsedDays = 0;
+  if (monthYear === currentMonthStr) {
+    elapsedDays = todayDay; // Mes actual, contamos hasta hoy
+  } else if (monthYear < currentMonthStr) {
+    elapsedDays = totalDays; // Mes pasado, ya transcurrieron todos los días
+  } else {
+    elapsedDays = 0; // Mes futuro
+  }
+
+  const expectedPatients = Math.round((targetPatients / totalDays) * elapsedDays);
+  const expectedPercentage = Math.min((expectedPatients / targetPatients) * 100, 100);
+
+  return { expectedPatients, expectedPercentage };
+}
 
 export function GoalList() {
   const { data: goals = [], isLoading } = useGoals();
@@ -16,8 +44,6 @@ export function GoalList() {
   const { data: clients } = useClients();
 
   const [historyGoal, setHistoryGoal] = useState<any | null>(null);
-  
-  // Estados para los filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
 
@@ -40,7 +66,6 @@ export function GoalList() {
     );
   }
 
-  // Filtrar las metas basándonos en la búsqueda y el mes seleccionado
   const filteredGoals = goals.filter((goal) => {
     const client = clients?.find(c => c.id === goal.clientId);
     const clientName = client?.name || '';
@@ -103,12 +128,24 @@ export function GoalList() {
             const currentPatients = goal.dailyLogs?.reduce((acc: number, log: any) => acc + log.count, 0) || 0;
             const progressPercentage = Math.min((currentPatients / goal.targetPatients) * 100, 100);
             
+            // Lógica de Pacing (Ritmo)
+            const pacing = calculatePacing(goal.monthYear, goal.targetPatients);
+            const isOnTrack = currentPatients >= pacing.expectedPatients;
+            
             const costVal = Number(goal.costPerPatient);
             const earnedMoney = currentPatients * costVal;
             const projectedMoney = goal.targetPatients * costVal;
             
-            const progressColor = progressPercentage >= 100 ? "[&>div]:bg-emerald-500" : progressPercentage > 50 ? "[&>div]:bg-blue-500" : "[&>div]:bg-amber-500";
-            const badgeColor = progressPercentage >= 100 ? "bg-emerald-100 text-emerald-700" : "bg-blue-50 text-blue-700";
+            // Colores Dinámicos basados en si estamos atrasados o a tiempo
+            const progressColor = progressPercentage >= 100 
+              ? "[&>div]:bg-emerald-500" 
+              : isOnTrack 
+                ? "[&>div]:bg-blue-500" 
+                : "[&>div]:bg-amber-500";
+                
+            const badgeColor = progressPercentage >= 100 
+              ? "bg-emerald-100 text-emerald-700" 
+              : "bg-blue-50 text-blue-700";
 
             return (
               <div key={goal.id} className="glass rounded-[2rem] p-6 shadow-sm border border-zinc-200/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
@@ -135,15 +172,47 @@ export function GoalList() {
 
                 <div className="space-y-6 relative z-10">
                   <div>
-                    <div className="flex justify-between text-sm mb-2 font-medium">
-                      <span className="text-zinc-500 flex items-center gap-1.5"><Users className="w-4 h-4"/> Pacientes</span>
-                      <span className="text-zinc-900 font-mono">
-                        {currentPatients} / {goal.targetPatients}
-                      </span>
+                    <div className="flex justify-between items-end mb-2">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-zinc-500 text-sm font-medium flex items-center gap-1.5">
+                          <Users className="w-4 h-4"/> Pacientes
+                        </span>
+                        {pacing.expectedPatients > 0 && progressPercentage < 100 && (
+                          <span className={cn("text-xs font-semibold", isOnTrack ? "text-emerald-600" : "text-amber-600")}>
+                            Esperado a hoy: {pacing.expectedPatients}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <span className="text-zinc-900 font-mono font-medium">
+                          {currentPatients} / {goal.targetPatients}
+                        </span>
+                      </div>
                     </div>
-                    <Progress value={progressPercentage} className={cn("h-2.5 bg-zinc-100", progressColor)} />
-                    <div className="flex justify-end mt-1 text-xs font-bold text-zinc-400">
-                      {progressPercentage.toFixed(1)}% Completado
+                    
+                    <div className="relative">
+                      <Progress value={progressPercentage} className={cn("h-2.5 bg-zinc-100", progressColor)} />
+                      
+                      {/* Marcador del Indicador de Ritmo */}
+                      {pacing.expectedPercentage > 0 && pacing.expectedPercentage < 100 && (
+                         <div
+                           className={cn(
+                             "absolute top-1/2 -translate-y-1/2 w-1 h-4 rounded-full shadow-sm z-10 border border-white",
+                             isOnTrack ? "bg-emerald-500" : "bg-amber-500"
+                           )}
+                           style={{ left: `calc(${pacing.expectedPercentage}% - 2px)` }}
+                           title={`Progreso esperado: ${pacing.expectedPatients}`}
+                         />
+                      )}
+                    </div>
+                    
+                    <div className="flex justify-between mt-1.5 text-xs font-bold">
+                      <span className={cn(
+                        progressPercentage >= 100 ? "text-emerald-600" : isOnTrack ? "text-blue-600" : "text-amber-600"
+                      )}>
+                        {progressPercentage >= 100 ? 'Meta completada 🎉' : isOnTrack ? 'A buen ritmo' : 'Requiere atención'}
+                      </span>
+                      <span className="text-zinc-400">{progressPercentage.toFixed(1)}%</span>
                     </div>
                   </div>
 
