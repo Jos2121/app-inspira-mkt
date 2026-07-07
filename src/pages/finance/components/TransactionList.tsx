@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,7 +31,7 @@ export function TransactionList({ transactions, isLoading, onDelete, isDeleting 
   
   // Estados para filtros
   const [searchTerm, setSearchTerm] = useState('');
-  const [monthFilter, setMonthFilter] = useState('');
+  const [monthFilter, setMonthFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   
   // Estado para paginación
@@ -50,11 +50,25 @@ export function TransactionList({ transactions, isLoading, onDelete, isDeleting 
     }
   };
 
+  // Obtener los meses disponibles a partir de las transacciones (ej: "2024-07")
+  const availableMonths = useMemo(() => {
+    const months = new Set(transactions.map(tx => tx.date.substring(0, 7)));
+    return Array.from(months).sort().reverse(); // Orden descendente (más recientes primero)
+  }, [transactions]);
+
+  // Formatear "2024-07" a "Julio 2024"
+  const formatMonthYear = (yyyyMM: string) => {
+    const [year, month] = yyyMM.split('-');
+    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const monthName = months[parseInt(month, 10) - 1];
+    return `${monthName} ${year}`;
+  };
+
   // Aplicar filtros
   const filteredTransactions = transactions.filter(tx => {
     const matchesSearch = (tx.category.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           (tx.description && tx.description.toLowerCase().includes(searchTerm.toLowerCase())));
-    const matchesMonth = monthFilter ? tx.date.startsWith(monthFilter) : true;
+    const matchesMonth = monthFilter === 'all' ? true : tx.date.startsWith(monthFilter);
     const matchesType = typeFilter === 'all' ? true : tx.type === typeFilter;
     
     return matchesSearch && matchesMonth && matchesType;
@@ -69,7 +83,7 @@ export function TransactionList({ transactions, isLoading, onDelete, isDeleting 
 
   const clearFilters = () => {
     setSearchTerm('');
-    setMonthFilter('');
+    setMonthFilter('all');
     setTypeFilter('all');
   };
 
@@ -89,12 +103,19 @@ export function TransactionList({ transactions, isLoading, onDelete, isDeleting 
           </div>
           
           <div className="flex gap-2 w-full sm:w-auto">
-            <Input 
-              type="month" 
-              className="bg-white border-zinc-200 focus-visible:ring-blue-600/20 w-full sm:w-[160px]"
-              value={monthFilter}
-              onChange={(e) => setMonthFilter(e.target.value)}
-            />
+            <Select value={monthFilter} onValueChange={setMonthFilter}>
+              <SelectTrigger className="w-[160px] bg-white border-zinc-200 capitalize">
+                <SelectValue placeholder="Mes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los meses</SelectItem>
+                {availableMonths.map(m => (
+                  <SelectItem key={m} value={m} className="capitalize">
+                    {formatMonthYear(m)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-[140px] bg-white border-zinc-200">
@@ -107,7 +128,7 @@ export function TransactionList({ transactions, isLoading, onDelete, isDeleting 
               </SelectContent>
             </Select>
 
-            {(searchTerm || monthFilter || typeFilter !== 'all') && (
+            {(searchTerm || monthFilter !== 'all' || typeFilter !== 'all') && (
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -144,7 +165,7 @@ export function TransactionList({ transactions, isLoading, onDelete, isDeleting 
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-12 text-zinc-500">
                   No se encontraron movimientos con los filtros aplicados
-                  {(searchTerm || monthFilter || typeFilter !== 'all') && (
+                  {(searchTerm || monthFilter !== 'all' || typeFilter !== 'all') && (
                     <Button variant="link" onClick={clearFilters} className="mt-2 text-blue-600 block mx-auto">
                       Limpiar filtros
                     </Button>
