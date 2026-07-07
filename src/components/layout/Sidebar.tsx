@@ -38,7 +38,7 @@ export function Sidebar({
 
   return (
     <div className={cn(
-      "fixed inset-y-0 left-0 z-40 transform transition-all duration-300 ease-in-out md:translate-x-0 md:static md:h-screen md:p-4",
+      "fixed inset-y-0 left-0 z-40 transform transition-all duration-300 ease-in-out md:translate-x-0 md:sticky md:top-0 md:h-screen md:p-4",
       mobileMenuOpen ? "translate-x-0 w-72" : "-translate-x-full w-72",
       isCollapsed ? "md:w-28" : "md:w-72"
     )}>
