@@ -42,6 +42,27 @@ export function useCreateClient() {
   });
 }
 
+export function useUpdateClient() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Omit<Client, 'id' | 'createdAt'>> }) => {
+      const res = await fetch(`/api/clients/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Error al actualizar cliente');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      toast.success('Cliente actualizado exitosamente');
+    },
+    onError: () => toast.error('Error al actualizar cliente')
+  });
+}
+
 export function useDeleteClient() {
   const queryClient = useQueryClient();
 

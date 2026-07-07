@@ -1,6 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Edit } from 'lucide-react';
 import { Client } from '@/hooks/useClients';
 
 interface ClientListProps {
@@ -8,9 +8,10 @@ interface ClientListProps {
   isLoading: boolean;
   isAdmin: boolean;
   onDelete: (id: string) => void;
+  onEdit: (client: Client) => void;
 }
 
-export function ClientList({ clients, isLoading, isAdmin, onDelete }: ClientListProps) {
+export function ClientList({ clients, isLoading, isAdmin, onDelete, onEdit }: ClientListProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden">
       <Table>
@@ -34,18 +35,26 @@ export function ClientList({ clients, isLoading, isAdmin, onDelete }: ClientList
                 <TableCell className="text-zinc-600">{client.email || '-'}</TableCell>
                 <TableCell className="text-zinc-600 font-mono text-sm">{client.phone || '-'}</TableCell>
                 <TableCell className="text-right">
-                  {isAdmin && (
+                  <div className="flex justify-end gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                      onClick={() => onEdit(client)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
                     <Button 
                       variant="ghost" 
                       size="icon" 
                       className="text-red-500 hover:text-red-700 hover:bg-red-50"
                       onClick={() => {
-                        if (confirm('¿Eliminar cliente?')) onDelete(client.id);
+                        if (confirm('¿Eliminar cliente? Todas sus órdenes y metas también serán eliminadas.')) onDelete(client.id);
                       }}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
-                  )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))

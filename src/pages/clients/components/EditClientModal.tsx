@@ -1,0 +1,88 @@
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import React, { useState, useEffect } from 'react';
+import { Client } from '@/hooks/useClients';
+
+interface EditClientModalProps {
+  client: Client;
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: { name: string; email: string; phone: string; address: string }) => void;
+  isPending: boolean;
+}
+
+export function EditClientModal({ client, isOpen, onClose, onSubmit, isPending }: EditClientModalProps) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+
+  useEffect(() => {
+    if (client) {
+      setName(client.name);
+      setEmail(client.email || '');
+      setPhone(client.phone || '');
+      setAddress(client.address || '');
+    }
+  }, [client]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSubmit({ name, email, phone, address });
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Editar Cliente</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+          <div className="space-y-2">
+            <Label htmlFor="edit-name">Nombre Completo *</Label>
+            <Input 
+              id="edit-name" 
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required 
+              className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-email">Email</Label>
+            <Input 
+              id="edit-email" 
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-phone">Teléfono</Label>
+            <Input 
+              id="edit-phone" 
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-address">Dirección</Label>
+            <Input 
+              id="edit-address" 
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
+            />
+          </div>
+          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isPending}>
+            {isPending ? 'Guardando...' : 'Actualizar Cliente'}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
