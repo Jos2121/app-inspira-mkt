@@ -13,12 +13,12 @@ export function AuthPage() {
       <div className="w-full max-w-[440px] animate-in fade-in zoom-in-95 duration-700 fill-both relative z-10">
         
         {/* Logo and Brand */}
-        <div className="flex flex-col items-center gap-4 mb-8 justify-center group">
-          <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-zinc-200/50 border border-zinc-200 relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
+        <div className="flex flex-col items-center gap-2 mb-8 justify-center group">
+          <div className="w-32 h-32 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
             <img 
               src="/logo.jpg" 
               alt="Inspira Logo" 
-              className="w-full h-full object-cover" 
+              className="w-full h-full object-contain" 
             />
           </div>
           <div className="flex flex-col items-center">
