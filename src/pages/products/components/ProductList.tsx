@@ -1,6 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Edit } from 'lucide-react';
 import { Product } from '@/hooks/useProducts';
 import { formatCurrency } from '@/lib/utils';
 
@@ -9,9 +9,10 @@ interface ProductListProps {
   isLoading: boolean;
   isAdmin: boolean;
   onDelete: (id: string) => void;
+  onEdit: (product: Product) => void;
 }
 
-export function ProductList({ products, isLoading, isAdmin, onDelete }: ProductListProps) {
+export function ProductList({ products, isLoading, isAdmin, onDelete, onEdit }: ProductListProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden">
       <Table>
@@ -27,7 +28,7 @@ export function ProductList({ products, isLoading, isAdmin, onDelete }: ProductL
           {isLoading ? (
             <TableRow><TableCell colSpan={4} className="text-center py-8 text-zinc-500">Cargando productos...</TableCell></TableRow>
           ) : products.length === 0 ? (
-            <TableRow><TableCell colSpan={4} className="text-center py-8 text-zinc-500">No se encontraron productos</TableCell></TableRow>
+            <TableRow><TableCell colSpan={4} className="text-center py-8 text-zinc-500">No se encontraron productos</TableRow>
           ) : (
             products.map((product) => (
               <TableRow key={product.id} className="hover:bg-zinc-50/50 transition-colors">
@@ -36,16 +37,26 @@ export function ProductList({ products, isLoading, isAdmin, onDelete }: ProductL
                 <TableCell className="font-mono font-medium text-zinc-900">{formatCurrency(product.price)}</TableCell>
                 <TableCell className="text-right">
                   {isAdmin && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => {
-                        if (confirm('¿Eliminar producto?')) onDelete(product.id);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                        onClick={() => onEdit(product)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => {
+                          if (confirm('¿Eliminar producto?')) onDelete(product.id);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   )}
                 </TableCell>
               </TableRow>

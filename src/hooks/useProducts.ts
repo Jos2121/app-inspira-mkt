@@ -41,6 +41,27 @@ export function useCreateProduct() {
   });
 }
 
+export function useUpdateProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: { name: string; description?: string; price: number } }) => {
+      const res = await fetch(`/api/products/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Error al actualizar producto');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Producto actualizado exitosamente');
+    },
+    onError: () => toast.error('Error al actualizar producto')
+  });
+}
+
 export function useDeleteProduct() {
   const queryClient = useQueryClient();
 

@@ -2,18 +2,22 @@ import { useState } from 'react';
 import { useAuthSession } from '@/lib/auth-client';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { useProducts, useCreateProduct, useDeleteProduct } from '@/hooks/useProducts';
+import { useProducts, useCreateProduct, useDeleteProduct, useUpdateProduct, Product } from '@/hooks/useProducts';
 import { ProductList } from './products/components/ProductList';
 import { ProductFormModal } from './products/components/ProductFormModal';
+import { EditProductModal } from './products/components/EditProductModal';
 
 export default function Products() {
   const { data: session } = useAuthSession();
   const isAdmin = session?.user?.role === 'Admin';
+  
   const [search, setSearch] = useState('');
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const { data: products, isLoading } = useProducts();
   const createMutation = useCreateProduct();
   const deleteMutation = useDeleteProduct();
+  const updateMutation = useUpdateProduct();
 
   const filteredProducts = Array.isArray(products) ? products.filter(p => 
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -43,7 +47,22 @@ export default function Products() {
         isLoading={isLoading} 
         isAdmin={isAdmin} 
         onDelete={(id) => deleteMutation.mutate(id)} 
+        onEdit={(product) => setEditingProduct(product)}
       />
+
+      {/* Modal de edición */}
+      {editingProduct && (
+        <EditProductModal
+          product={editingProduct}
+          isOpen={!!editingProduct}
+          onClose={() => setEditingProduct(null)}
+          onSubmit={(data) => updateMutation.mutate(
+            { id: editingProduct.id, data },
+            { onSuccess: () => setEditingProduct(null) }
+          )}
+          isPending={updateMutation.isPending}
+        />
+      )}
     </div>
   );
 }
