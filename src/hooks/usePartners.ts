@@ -30,14 +30,17 @@ export function useCreatePartner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Error');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error interno del servidor al crear socio');
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['partners'] });
-      toast.success('Socio registrado');
+      toast.success('Socio registrado exitosamente');
     },
-    onError: () => toast.error('Error al crear socio')
+    onError: (error) => toast.error(error.message)
   });
 }
 
@@ -50,14 +53,17 @@ export function useUpdatePartner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Error');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error interno al actualizar socio');
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['partners'] });
-      toast.success('Socio actualizado');
+      toast.success('Socio actualizado exitosamente');
     },
-    onError: () => toast.error('Error al actualizar socio')
+    onError: (error) => toast.error(error.message)
   });
 }
 
@@ -66,13 +72,16 @@ export function useDeletePartner() {
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/partners/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Error');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error interno al eliminar socio');
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['partners'] });
       toast.success('Socio eliminado');
     },
-    onError: () => toast.error('Error al eliminar socio')
+    onError: (error) => toast.error(error.message)
   });
 }

@@ -35,14 +35,17 @@ export function useCreateTask() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Error');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error interno al crear tarea');
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      toast.success('Tarea creada');
+      toast.success('Tarea creada exitosamente');
     },
-    onError: () => toast.error('Error al crear tarea')
+    onError: (error) => toast.error(error.message)
   });
 }
 
@@ -55,14 +58,17 @@ export function useUpdateTask() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Error');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error interno al actualizar tarea');
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      toast.success('Tarea actualizada');
+      toast.success('Tarea actualizada exitosamente');
     },
-    onError: () => toast.error('Error al actualizar tarea')
+    onError: (error) => toast.error(error.message)
   });
 }
 
@@ -71,13 +77,16 @@ export function useDeleteTask() {
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Error');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error interno al eliminar tarea');
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       toast.success('Tarea eliminada');
     },
-    onError: () => toast.error('Error al eliminar tarea')
+    onError: (error) => toast.error(error.message)
   });
 }
