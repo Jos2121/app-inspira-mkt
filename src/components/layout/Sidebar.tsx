@@ -8,7 +8,7 @@ import { UserMenu } from '../UserMenu';
 export const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
   { icon: CalendarDays, label: 'Calendario', path: '/calendar' },
-  { icon: Target, label: 'Metas pacientes', path: '/goals' },
+  { icon: Target, label: 'Metas', path: '/goals' },
   { icon: Wallet, label: 'Finanzas', path: '/finance' },
   { icon: Users, label: 'Clientes', path: '/clients' },
   { icon: UserSquare2, label: 'Staff / Socios', path: '/partners' },
