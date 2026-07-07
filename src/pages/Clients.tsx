@@ -21,25 +21,30 @@ export default function Clients() {
 
   const filteredClients = Array.isArray(clients) ? clients.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 
-    c.email?.toLowerCase().includes(search.toLowerCase())
+    (c.email && c.email.toLowerCase().includes(search.toLowerCase()))
   ) : [];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="relative w-full max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400" />
-          <Input 
-            placeholder="Buscar clientes..." 
-            className="pl-9 bg-white border-zinc-200 focus-visible:ring-blue-600/20 focus-visible:border-blue-600 transition-all" 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-zinc-900">Directorio de Clientes</h2>
+          <p className="text-zinc-500 mt-1 font-medium">Gestiona y visualiza la información de tus pacientes o clientes.</p>
         </div>
         
         <ClientFormModal 
           onSubmit={(data) => createMutation.mutate(data)} 
           isPending={createMutation.isPending} 
+        />
+      </div>
+
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+        <Input 
+          placeholder="Buscar clientes por nombre o email..." 
+          className="pl-9 bg-white shadow-sm focus-visible:ring-blue-600/20 focus-visible:border-blue-600 transition-all" 
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
