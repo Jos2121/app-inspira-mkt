@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Package, ShoppingCart, Target, Wallet, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { LayoutDashboard, Users, Target, Wallet, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -8,10 +8,8 @@ import { UserMenu } from '../UserMenu';
 export const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
   { icon: Wallet, label: 'Finanzas', path: '/finance' },
-  { icon: ShoppingCart, label: 'Órdenes', path: '/orders' },
   { icon: Target, label: 'Metas pacientes', path: '/goals' },
   { icon: Users, label: 'Clientes', path: '/clients' },
-  { icon: Package, label: 'Productos', path: '/products' },
 ];
 
 interface SidebarProps {
@@ -34,7 +32,7 @@ export function Sidebar({
   user
 }: SidebarProps) {
   const location = useLocation();
-  const items = navItems.filter(item => !item.adminOnly || isAdmin);
+  const items = navItems.filter(item => !(item as any).adminOnly || isAdmin);
 
   return (
     <div className={cn(

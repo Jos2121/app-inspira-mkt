@@ -1,4 +1,4 @@
-import { DollarSign, ShoppingBag, Users, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Users } from 'lucide-react';
 import { useDashboardKpis } from '@/hooks/useDashboard';
 import { KpiCard } from './dashboard/components/KpiCard';
 import { formatCurrency } from '@/lib/utils';
@@ -15,29 +15,29 @@ export default function Dashboard() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard
-          title="Facturación Mensual"
-          value={kpis?.revenue ? formatCurrency(kpis.revenue) : formatCurrency(0)}
-          icon={DollarSign}
+          title="Ingresos (Mes)"
+          value={kpis?.incomes ? formatCurrency(kpis.incomes) : formatCurrency(0)}
+          icon={TrendingUp}
           isLoading={isLoading}
           delay="100ms"
         />
         <KpiCard
-          title="Por Cobrar"
-          value={kpis?.receivables ? formatCurrency(kpis.receivables) : formatCurrency(0)}
-          icon={Activity}
+          title="Gastos (Mes)"
+          value={kpis?.expenses ? formatCurrency(kpis.expenses) : formatCurrency(0)}
+          icon={TrendingDown}
           isLoading={isLoading}
           delay="200ms"
         />
         <KpiCard
-          title="Ventas (Mes)"
-          value={kpis?.salesCount || '0'}
-          icon={ShoppingBag}
+          title="Utilidad (Mes)"
+          value={kpis?.balance ? formatCurrency(kpis.balance) : formatCurrency(0)}
+          icon={Wallet}
           isLoading={isLoading}
           delay="300ms"
         />
         <KpiCard
-          title="Ticket Promedio"
-          value={kpis?.avgTicket ? formatCurrency(kpis.avgTicket) : formatCurrency(0)}
+          title="Total Pacientes (Mes)"
+          value={kpis?.totalPatients || '0'}
           icon={Users}
           isLoading={isLoading}
           delay="400ms"

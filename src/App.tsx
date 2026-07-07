@@ -8,10 +8,6 @@ import { AuthPage } from "./pages/auth/AuthPage";
 import { AppLayout } from "./components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
-import Products from "./pages/Products";
-import Orders from "./pages/Orders";
-import NewOrder from "./pages/NewOrder";
-import OrderDetails from "./pages/OrderDetails";
 import Goals from "./pages/goals/Goals";
 import Finance from "./pages/finance/Finance";
 import NotFound from "./pages/NotFound";
@@ -32,10 +28,6 @@ const App = () => (
               <Route path="/" element={<Dashboard />} />
               <Route path="/finance" element={<Finance />} />
               <Route path="/clients" element={<Clients />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/orders" element={<Orders />} />
-              <Route path="/orders/new" element={<NewOrder />} />
-              <Route path="/orders/:id" element={<OrderDetails />} />
               <Route path="/goals" element={<Goals />} />
             </Route>
 

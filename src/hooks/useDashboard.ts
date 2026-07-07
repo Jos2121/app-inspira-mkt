@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 
 export type DashboardKpis = {
-  revenue: number;
-  receivables: number;
-  salesCount: number;
-  avgTicket: number;
+  incomes: number;
+  expenses: number;
+  balance: number;
+  totalPatients: number;
 };
 
 export function useDashboardKpis() {

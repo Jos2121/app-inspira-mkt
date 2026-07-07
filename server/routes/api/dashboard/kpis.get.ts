@@ -1,6 +1,6 @@
 import { defineHandler } from 'nitro';
 import { db } from '../../../utils/db';
-import { orders } from '../../../db/schema';
+import { transactions, dailyLogs } from '../../../db/schema';
 import { sql as drizzleSql, eq, and, gte, lt } from 'drizzle-orm';
 
 export default defineHandler(async (event) => {
@@ -20,44 +20,48 @@ export default defineHandler(async (event) => {
   const getPart = (type: string) => parseInt(parts.find(p => p.type === type)!.value, 10);
   
   const year = getPart('year');
-  const month = getPart('month') - 1; // 0-indexado
+  const month = getPart('month'); // 1-12
 
-  // Lima es UTC-5, construimos el Date en UTC basándonos en medianoche local (+5 horas a la medianoche UTC)
-  const startOfMonth = new Date(Date.UTC(year, month, 1, 5, 0, 0));
-  
-  const nextMonth = month === 11 ? 0 : month + 1;
-  const nextYear = month === 11 ? year + 1 : year;
-  const startOfNextMonth = new Date(Date.UTC(nextYear, nextMonth, 1, 5, 0, 0));
+  const startMonthStr = `${year}-${month.toString().padStart(2, '0')}-01`;
+  const nextMonthYear = month === 12 ? year + 1 : year;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextMonthStr = `${nextMonthYear}-${nextMonth.toString().padStart(2, '0')}-01`;
 
-  const monthCondition = and(
-    gte(orders.createdAt, startOfMonth),
-    lt(orders.createdAt, startOfNextMonth)
+  // Condición de filtro por mes actual (String ISO comparison seguro para SQLite/PG sin zonas complejas)
+  const monthConditionTx = and(
+    gte(transactions.date, startMonthStr),
+    lt(transactions.date, nextMonthStr)
   );
 
-  const [revenueResult] = await db
-    .select({ total: drizzleSql<number>`coalesce(sum(${orders.total}), 0)` })
-    .from(orders)
-    .where(and(monthCondition, eq(orders.status, 'Pagado')));
+  const monthConditionLogs = and(
+    gte(dailyLogs.date, startMonthStr),
+    lt(dailyLogs.date, nextMonthStr)
+  );
 
-  const [receivablesResult] = await db
-    .select({ total: drizzleSql<number>`coalesce(sum(${orders.total}), 0)` })
-    .from(orders)
-    .where(and(monthCondition, eq(orders.status, 'Pendiente')));
+  const [incomeResult] = await db
+    .select({ total: drizzleSql<number>`coalesce(sum(${transactions.amount}), 0)` })
+    .from(transactions)
+    .where(and(monthConditionTx, eq(transactions.type, 'Ingreso')));
 
-  const [salesCountResult] = await db
-    .select({ count: drizzleSql<number>`count(*)` })
-    .from(orders)
-    .where(monthCondition);
+  const [expenseResult] = await db
+    .select({ total: drizzleSql<number>`coalesce(sum(${transactions.amount}), 0)` })
+    .from(transactions)
+    .where(and(monthConditionTx, eq(transactions.type, 'Gasto')));
 
-  const count = Number(salesCountResult.count);
-  const revenue = Number(revenueResult.total);
-  const receivables = Number(receivablesResult.total);
-  const avgTicket = count > 0 ? revenue / count : 0;
+  const [patientsResult] = await db
+    .select({ total: drizzleSql<number>`coalesce(sum(${dailyLogs.count}), 0)` })
+    .from(dailyLogs)
+    .where(monthConditionLogs);
+
+  const incomes = Number(incomeResult.total);
+  const expenses = Number(expenseResult.total);
+  const balance = incomes - expenses;
+  const totalPatients = Number(patientsResult.total);
 
   return {
-    revenue,
-    receivables,
-    salesCount: count,
-    avgTicket: Math.round(avgTicket * 100) / 100,
+    incomes,
+    expenses,
+    balance,
+    totalPatients,
   };
 });
