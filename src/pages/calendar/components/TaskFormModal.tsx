@@ -51,13 +51,11 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
     };
   };
 
-  const initialTimes = getDefaultTimes(selectedDate);
-
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    startTime: initialTimes.start,
-    endTime: initialTimes.end,
+    startTime: getDefaultTimes(selectedDate).start,
+    endTime: getDefaultTimes(selectedDate).end,
     partnerId: 'none',
     clientId: 'none',
     status: 'Pendiente'
@@ -77,6 +75,7 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
         status: task.status
       });
     } else {
+      // AHORA SÍ: Usamos la función oficial para los tiempos por defecto cada vez que abrimos el modal
       const times = getDefaultTimes(selectedDate);
       setFormData({
         title: '',
