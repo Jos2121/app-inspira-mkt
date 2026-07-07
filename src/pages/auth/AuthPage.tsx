@@ -12,7 +12,7 @@ export function AuthPage() {
 
       <div className="w-full max-w-[440px] animate-in fade-in zoom-in-95 duration-700 fill-both relative z-10">
         
-        {/* Logo and Brand */}
+        {/* Logo */}
         <div className="flex flex-col items-center gap-2 mb-8 justify-center group">
           <div className="w-32 h-32 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
             <img 
@@ -20,10 +20,6 @@ export function AuthPage() {
               alt="Inspira Logo" 
               className="w-full h-full object-contain" 
             />
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="font-extrabold text-3xl tracking-tight text-zinc-900">Inspira</span>
-            <span className="text-xs font-bold text-zinc-500 tracking-widest uppercase mt-1">Gestión MVP</span>
           </div>
         </div>
 
