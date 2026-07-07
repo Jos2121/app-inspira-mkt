@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { getCurrentDateLimaISO } from '@/lib/date-utils';
 import { Transaction } from '@/hooks/useFinance';
 import { formatCurrency } from '@/lib/utils';
@@ -22,6 +22,7 @@ export function FinanceChart({ transactions }: FinanceChartProps) {
       name: month,
       ingresos: 0,
       gastos: 0,
+      ingresoNeto: 0,
     }));
 
     // Llenar los datos con las transacciones correspondientes al año seleccionado
@@ -40,7 +41,11 @@ export function FinanceChart({ transactions }: FinanceChartProps) {
       }
     });
 
-    return data;
+    // Calcular el ingreso neto al final
+    return data.map(item => ({
+      ...item,
+      ingresoNeto: item.ingresos - item.gastos
+    }));
   }, [transactions, selectedYear]);
 
   const years = useMemo(() => {
@@ -55,7 +60,7 @@ export function FinanceChart({ transactions }: FinanceChartProps) {
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2">
         <div>
           <CardTitle className="text-xl font-bold text-zinc-900">Balance Anual</CardTitle>
-          <CardDescription>Visualiza los ingresos y gastos consolidados por mes.</CardDescription>
+          <CardDescription>Visualiza los ingresos, gastos y el neto consolidado por mes.</CardDescription>
         </div>
         <Select value={selectedYear} onValueChange={setSelectedYear}>
           <SelectTrigger className="w-[120px] bg-white border-zinc-200">
@@ -87,8 +92,10 @@ export function FinanceChart({ transactions }: FinanceChartProps) {
                 formatter={(value: number, name: string) => [formatCurrency(value), name]}
               />
               <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+              <ReferenceLine y={0} stroke="#a1a1aa" />
               <Bar dataKey="ingresos" name="Ingresos" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
               <Bar dataKey="gastos" name="Gastos" fill="#f43f5e" radius={[4, 4, 0, 0]} maxBarSize={40} />
+              <Bar dataKey="ingresoNeto" name="Ingreso Neto" fill="#3b82f6" radius={[4, 4, 4, 4]} maxBarSize={40} />
             </BarChart>
           </ResponsiveContainer>
         </div>
