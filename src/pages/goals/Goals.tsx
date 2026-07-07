@@ -1,5 +1,6 @@
 import { CreateGoalModal } from './components/CreateGoalModal';
 import { GoalList } from './components/GoalList';
+import { GoalsChart } from './components/GoalsChart';
 
 export default function Goals() {
   return (
@@ -12,7 +13,11 @@ export default function Goals() {
         <CreateGoalModal />
       </div>
 
-      <div className="animate-in fade-in duration-1000 delay-150 fill-both">
+      <div className="animate-in fade-in duration-1000 delay-100 fill-both">
+        <GoalsChart />
+      </div>
+
+      <div className="animate-in fade-in duration-1000 delay-200 fill-both">
         <GoalList />
       </div>
     </div>
