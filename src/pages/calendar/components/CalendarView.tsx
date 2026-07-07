@@ -14,10 +14,12 @@ interface CalendarViewProps {
   tasks: Task[];
   onTaskCreate: (data: any) => void;
   onTaskUpdate: (id: string, data: any) => void;
+  onTaskDelete: (id: string) => void;
   isPending: boolean;
+  isDeleting: boolean;
 }
 
-export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, isPending }: CalendarViewProps) {
+export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, isPending, isDeleting }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -152,7 +154,9 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, isPending }: C
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
+        onDelete={onTaskDelete}
         isPending={isPending}
+        isDeleting={isDeleting}
         selectedDate={selectedDate}
       />
     </div>

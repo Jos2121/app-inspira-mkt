@@ -7,17 +7,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useClients } from '@/hooks/useClients';
 import { usePartners } from '@/hooks/usePartners';
 import { Task } from '@/hooks/useTasks';
+import { Trash2 } from 'lucide-react';
 
 interface TaskFormModalProps {
   task?: Task | null;
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: any) => void;
+  onDelete?: (id: string) => void;
   isPending: boolean;
+  isDeleting?: boolean;
   selectedDate?: Date; // Si se clickea un día vacío
 }
 
-export function TaskFormModal({ task, isOpen, onClose, onSubmit, isPending, selectedDate }: TaskFormModalProps) {
+export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPending, isDeleting, selectedDate }: TaskFormModalProps) {
   const { data: clients = [] } = useClients();
   const { data: partners = [] } = usePartners();
   
@@ -36,6 +39,8 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, isPending, sele
     clientId: 'none',
     status: 'Pendiente'
   });
+
+  const isEditMode = !!task;
 
   useEffect(() => {
     if (task) {
@@ -74,32 +79,71 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, isPending, sele
     });
   };
 
+  const handleDelete = () => {
+    if (task && onDelete && window.confirm('¿Estás seguro que deseas eliminar esta tarea permanentemente?')) {
+      onDelete(task.id);
+      onClose();
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-[450px] rounded-[2rem]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">{task ? 'Editar Tarea' : 'Nueva Tarea'}</DialogTitle>
+          <DialogTitle className="text-xl font-bold">{isEditMode ? 'Detalles de la Tarea' : 'Nueva Tarea'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label>Título *</Label>
-            <Input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="focus-visible:ring-blue-600/20" />
+            <Label>Título {isEditMode ? '' : '*'}</Label>
+            <Input 
+              required 
+              disabled={isEditMode}
+              value={formData.title} 
+              onChange={e => setFormData({...formData, title: e.target.value})} 
+              className="focus-visible:ring-blue-600/20 disabled:opacity-80 disabled:bg-zinc-50" 
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Descripción</Label>
+            <Input 
+              disabled={isEditMode}
+              value={formData.description} 
+              onChange={e => setFormData({...formData, description: e.target.value})} 
+              className="focus-visible:ring-blue-600/20 disabled:opacity-80 disabled:bg-zinc-50"
+              placeholder={isEditMode ? "Sin descripción" : "Opcional..."}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Inicio {isEditMode ? '' : '*'}</Label>
+              <Input 
+                type="datetime-local" 
+                required 
+                disabled={isEditMode}
+                value={formData.startTime} 
+                onChange={e => setFormData({...formData, startTime: e.target.value})} 
+                className="disabled:opacity-80 disabled:bg-zinc-50"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Fin {isEditMode ? '' : '*'}</Label>
+              <Input 
+                type="datetime-local" 
+                required 
+                disabled={isEditMode}
+                value={formData.endTime} 
+                onChange={e => setFormData({...formData, endTime: e.target.value})}
+                className="disabled:opacity-80 disabled:bg-zinc-50" 
+              />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Inicio *</Label>
-              <Input type="datetime-local" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} />
-            </div>
-            <div className="space-y-2">
-              <Label>Fin *</Label>
-              <Input type="datetime-local" required value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Asignar a (Socio)</Label>
-              <Select value={formData.partnerId} onValueChange={v => setFormData({...formData, partnerId: v})}>
-                <SelectTrigger><SelectValue placeholder="Socio..." /></SelectTrigger>
+              <Label>Asignado a</Label>
+              <Select disabled={isEditMode} value={formData.partnerId} onValueChange={v => setFormData({...formData, partnerId: v})}>
+                <SelectTrigger className="disabled:opacity-80 disabled:bg-zinc-50"><SelectValue placeholder="Socio..." /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Sin asignar</SelectItem>
                   {partners.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
@@ -107,9 +151,9 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, isPending, sele
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Relacionado a (Cliente)</Label>
-              <Select value={formData.clientId} onValueChange={v => setFormData({...formData, clientId: v})}>
-                <SelectTrigger><SelectValue placeholder="Cliente..." /></SelectTrigger>
+              <Label>Cliente</Label>
+              <Select disabled={isEditMode} value={formData.clientId} onValueChange={v => setFormData({...formData, clientId: v})}>
+                <SelectTrigger className="disabled:opacity-80 disabled:bg-zinc-50"><SelectValue placeholder="Cliente..." /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Ninguno</SelectItem>
                   {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -118,9 +162,9 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, isPending, sele
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Estado</Label>
+            <Label>Estado de la Tarea</Label>
             <Select value={formData.status} onValueChange={v => setFormData({...formData, status: v})}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger className="border-blue-200 bg-blue-50/50"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Pendiente">Pendiente</SelectItem>
                 <SelectItem value="En Proceso">En Proceso</SelectItem>
@@ -128,9 +172,24 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, isPending, sele
               </SelectContent>
             </Select>
           </div>
-          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-11 mt-2" disabled={isPending}>
-            {isPending ? 'Guardando...' : 'Guardar Tarea'}
-          </Button>
+          
+          <div className="flex gap-3 pt-2">
+            {isEditMode && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {isDeleting ? 'Eliminando...' : 'Eliminar'}
+              </Button>
+            )}
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isPending}>
+              {isPending ? 'Guardando...' : (isEditMode ? 'Actualizar Estado' : 'Guardar Tarea')}
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

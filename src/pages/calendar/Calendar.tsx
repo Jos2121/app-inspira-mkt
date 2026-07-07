@@ -1,10 +1,11 @@
-import { useTasks, useCreateTask, useUpdateTask } from '@/hooks/useTasks';
+import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '@/hooks/useTasks';
 import { CalendarView } from './components/CalendarView';
 
 export default function CalendarPage() {
   const { data: tasks = [], isLoading } = useTasks();
   const createMutation = useCreateTask();
   const updateMutation = useUpdateTask();
+  const deleteMutation = useDeleteTask();
 
   if (isLoading) {
     return (
@@ -25,7 +26,9 @@ export default function CalendarPage() {
         tasks={tasks}
         onTaskCreate={(data) => createMutation.mutate(data)}
         onTaskUpdate={(id, data) => updateMutation.mutate({ id, data })}
+        onTaskDelete={(id) => deleteMutation.mutate(id)}
         isPending={createMutation.isPending || updateMutation.isPending}
+        isDeleting={deleteMutation.isPending}
       />
     </div>
   );
