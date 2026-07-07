@@ -8,11 +8,6 @@ export default defineHandler(async (event) => {
   const id = getRouterParam(event, 'id');
   if (!id) throw createError({ statusCode: 400, message: 'ID required' });
 
-  // Solo Admin puede editar (manteniendo la misma regla que para eliminar)
-  if (event.context.userRole !== 'Admin') {
-    throw createError({ statusCode: 403, message: 'Forbidden' });
-  }
-
   const body = await readBody(event);
   
   if (!body.name || body.price === undefined) {
