@@ -28,6 +28,7 @@ A partir de ahora, TODO el código generado, refactorizado o sugerido debe obede
 4. **Estructura de Carpetas Modular:** Agrupa los archivos por dominio o característica funcional cuando sea necesario, en lugar de amontonar todos los componentes en una sola carpeta plana.
 5. **Archivos Pequeños y Mantenibles:** Si un archivo crece demasiado (código espagueti), es un indicador estricto de que debe ser refactorizado en módulos más pequeños antes de añadir nuevas funcionalidades.
 6. **Moneda Exclusiva (PEN):** Toda la plataforma y cualquier nueva funcionalidad que involucre transacciones, precios o reportes financieros debe utilizar exclusivamente la moneda Sol Peruano (PEN, S/). No generar código con dólares (USD) ni símbolos genéricos ($). Usar siempre la función `formatCurrency` de `src/lib/utils.ts`.
+7. **Zona Horaria y Localización Exclusiva (Lima/es-PE):** Toda la plataforma, tanto en el frontend como en cualquier lógica de backend o formateo, debe usar estrictamente la zona horaria de Lima, Perú ('America/Lima') y el formato local 'es-PE'. Nunca se deben mostrar fechas en UTC o zonas horarias del navegador por defecto si difieren de la de Perú. Siempre importa y utiliza las funciones del módulo `src/lib/date-utils.ts` para este propósito.
 
 <!-- nitro:start -->
 

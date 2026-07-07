@@ -1,18 +1,33 @@
 import { defineHandler } from 'nitro';
-import { db, sql } from '../../../utils/db';
+import { db } from '../../../utils/db';
 import { orders } from '../../../db/schema';
 import { sql as drizzleSql, eq, and, gte, lt } from 'drizzle-orm';
 
 export default defineHandler(async (event) => {
-  // Check auth
   const userId = event.context.userId;
   if (!userId) {
     return new Response('Unauthorized', { status: 401 });
   }
 
+  // Usar Intl.DateTimeFormat para extraer de forma segura el año y mes en la hora de Lima
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Lima',
+    year: 'numeric', month: 'numeric', day: 'numeric',
+  });
+  
+  const parts = formatter.formatToParts(now);
+  const getPart = (type: string) => parseInt(parts.find(p => p.type === type)!.value, 10);
+  
+  const year = getPart('year');
+  const month = getPart('month') - 1; // 0-indexado
+
+  // Lima es UTC-5, construimos el Date en UTC basándonos en medianoche local (+5 horas a la medianoche UTC)
+  const startOfMonth = new Date(Date.UTC(year, month, 1, 5, 0, 0));
+  
+  const nextMonth = month === 11 ? 0 : month + 1;
+  const nextYear = month === 11 ? year + 1 : year;
+  const startOfNextMonth = new Date(Date.UTC(nextYear, nextMonth, 1, 5, 0, 0));
 
   const monthCondition = and(
     gte(orders.createdAt, startOfMonth),

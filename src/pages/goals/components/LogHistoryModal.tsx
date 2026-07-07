@@ -1,13 +1,12 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { Trash2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDeleteDailyLog } from '@/hooks/useDailyLogs';
+import { formatLocalDateString } from '@/lib/date-utils';
 
 interface LogHistoryModalProps {
-  goal: any | null; // Usamos any por simplicidad para heredar el tipo anidado de metas
+  goal: any | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -25,7 +24,7 @@ export function LogHistoryModal({ goal, isOpen, onClose }: LogHistoryModalProps)
         <DialogHeader>
           <DialogTitle>Historial de Registros</DialogTitle>
           <p className="text-sm text-zinc-500">
-            Mostrando registros para el periodo {format(parseISO(`${goal.monthYear}-01`), 'MMMM yyyy', { locale: es })}
+            Mostrando registros para el periodo {formatLocalDateString(goal.monthYear, 'MMMM yyyy')}
           </p>
         </DialogHeader>
         
@@ -46,11 +45,10 @@ export function LogHistoryModal({ goal, isOpen, onClose }: LogHistoryModalProps)
                   </TableCell>
                 </TableRow>
               ) : (
-                // Ordenar los registros por fecha, los más recientes primero
                 [...logs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((log) => (
                   <TableRow key={log.id}>
-                    <TableCell className="font-medium text-zinc-900">
-                      {format(new Date(log.date), "d 'de' MMMM, yyyy", { locale: es })}
+                    <TableCell className="font-medium text-zinc-900 capitalize">
+                      {formatLocalDateString(log.date, "d 'de' MMMM, yyyy")}
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full text-xs font-bold font-mono">

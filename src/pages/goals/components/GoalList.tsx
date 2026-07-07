@@ -3,12 +3,11 @@ import { useGoals, useDeleteGoal } from '@/hooks/useGoals';
 import { useClients } from '@/hooks/useClients';
 import { Progress } from '@/components/ui/progress';
 import { formatCurrency, cn } from '@/lib/utils';
-import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { Target, TrendingUp, Users, Trash2, History } from 'lucide-react';
 import { DailyLogModal } from './DailyLogModal';
 import { Button } from '@/components/ui/button';
 import { LogHistoryModal } from './LogHistoryModal';
+import { formatLocalDateString } from '@/lib/date-utils';
 
 export function GoalList() {
   const { data: goals = [], isLoading } = useGoals();
@@ -48,7 +47,6 @@ export function GoalList() {
           const earnedMoney = currentPatients * costVal;
           const projectedMoney = goal.targetPatients * costVal;
           
-          // Colores dinámicos basados en el progreso
           const progressColor = progressPercentage >= 100 ? "[&>div]:bg-emerald-500" : progressPercentage > 50 ? "[&>div]:bg-blue-500" : "[&>div]:bg-amber-500";
           const badgeColor = progressPercentage >= 100 ? "bg-emerald-100 text-emerald-700" : "bg-blue-50 text-blue-700";
 
@@ -58,7 +56,7 @@ export function GoalList() {
               <div className="flex justify-between items-start mb-4 relative z-10">
                 <div>
                   <span className={cn("text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider", badgeColor)}>
-                    {format(parseISO(`${goal.monthYear}-01`), 'MMMM yyyy', { locale: es })}
+                    {formatLocalDateString(goal.monthYear, 'MMMM yyyy')}
                   </span>
                   <h3 className="text-lg font-bold text-zinc-900 mt-3 truncate pr-4">
                     {client?.name || 'Cargando cliente...'}
@@ -76,7 +74,6 @@ export function GoalList() {
               </div>
 
               <div className="space-y-6 relative z-10">
-                {/* Progress Section */}
                 <div>
                   <div className="flex justify-between text-sm mb-2 font-medium">
                     <span className="text-zinc-500 flex items-center gap-1.5"><Users className="w-4 h-4"/> Pacientes</span>
@@ -90,7 +87,6 @@ export function GoalList() {
                   </div>
                 </div>
 
-                {/* Financial Section */}
                 <div className="bg-zinc-50/50 rounded-xl p-4 border border-zinc-100 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", progressPercentage >= 100 ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-blue-600")}>
@@ -111,7 +107,6 @@ export function GoalList() {
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div className="pt-2 flex justify-between items-center">
                   <Button 
                     variant="outline" 
@@ -126,7 +121,6 @@ export function GoalList() {
                 </div>
               </div>
               
-              {/* Ambient Background Glow if completed */}
               {progressPercentage >= 100 && (
                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 blur-3xl rounded-full -z-10 pointer-events-none"></div>
               )}

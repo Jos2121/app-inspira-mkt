@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
 import { Order } from '@/hooks/useOrders';
 import { cn, formatCurrency } from '@/lib/utils';
+import { formatDateLima } from '@/lib/date-utils';
 
 interface OrderListProps {
   orders: Order[];
@@ -46,7 +46,7 @@ export function OrderList({ orders, isLoading }: OrderListProps) {
                 <TableCell className="font-mono text-zinc-600 font-medium">
                   {order.id.split('-')[0].toUpperCase()}
                 </TableCell>
-                <TableCell className="text-zinc-600">{format(new Date(order.createdAt), 'dd/MM/yyyy')}</TableCell>
+                <TableCell className="text-zinc-600">{formatDateLima(order.createdAt, 'dd/MM/yyyy')}</TableCell>
                 <TableCell className="font-medium text-zinc-900">{order.client?.name}</TableCell>
                 <TableCell className="font-mono font-bold text-zinc-900">{formatCurrency(order.total)}</TableCell>
                 <TableCell>

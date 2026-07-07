@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { ClipboardEdit } from 'lucide-react';
 import { useAddDailyLog } from '@/hooks/useGoals';
 import { toast } from 'sonner';
+import { getCurrentDateLimaISO } from '@/lib/date-utils';
 
 export function DailyLogModal({ goalId }: { goalId: string }) {
   const [open, setOpen] = useState(false);
@@ -41,7 +42,14 @@ export function DailyLogModal({ goalId }: { goalId: string }) {
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-2">
             <Label htmlFor="date">Fecha</Label>
-            <Input id="date" name="date" type="date" required defaultValue={new Date().toISOString().split('T')[0]} className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" />
+            <Input 
+              id="date" 
+              name="date" 
+              type="date" 
+              required 
+              defaultValue={getCurrentDateLimaISO()} 
+              className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="count">Pacientes Atendidos</Label>

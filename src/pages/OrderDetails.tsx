@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
-import { format } from 'date-fns';
 import { useOrder, useUpdateOrderStatus } from '@/hooks/useOrders';
 import { cn, formatCurrency } from '@/lib/utils';
+import { formatDateLima } from '@/lib/date-utils';
 
 export default function OrderDetails() {
   const { id } = useParams();
@@ -42,7 +42,7 @@ export default function OrderDetails() {
             </Badge>
           </div>
           <p className="text-zinc-500 mt-1">
-            Creada el {format(new Date(order.createdAt), 'dd/MM/yyyy HH:mm')}
+            Creada el {formatDateLima(order.createdAt, 'dd/MM/yyyy HH:mm')}
           </p>
         </div>
       </div>
