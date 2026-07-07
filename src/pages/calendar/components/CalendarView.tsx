@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, 
-  isSameMonth, isSameDay, eachDayOfInterval, parseISO 
+  isSameMonth, isSameDay, eachDayOfInterval 
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
@@ -23,7 +23,6 @@ interface CalendarViewProps {
 
 export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, isPending, isDeleting }: CalendarViewProps) {
   
-  // Función helper para obtener el día "Hoy" basado estrictamente en Lima
   const getLimaToday = () => toZonedTime(new Date(), LIMA_TIMEZONE);
 
   const [currentDate, setCurrentDate] = useState(getLimaToday());
@@ -75,7 +74,6 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
     setIsModalOpen(false);
   };
 
-  // Precalculamos "Hoy" en Lima para resaltar el día actual correctamente
   const limaToday = getLimaToday();
 
   return (
@@ -111,9 +109,8 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
         <div className="flex-1 grid grid-cols-7 auto-rows-fr overflow-y-auto">
           {days.map((day, i) => {
             const isCurrentMonth = isSameMonth(day, monthStart);
-            const isTodayDate = isSameDay(day, limaToday); // Validado contra la hora de Lima
+            const isTodayDate = isSameDay(day, limaToday);
             
-            // Filter tasks for this day (comparing YYYY-MM-DD)
             const dayTasks = tasks.filter(t => t.startTime.startsWith(format(day, 'yyyy-MM-dd')));
 
             return (
@@ -137,20 +134,25 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
                 
                 {/* Tasks container */}
                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-1">
-                  {dayTasks.map(task => (
-                    <div 
-                      key={task.id}
-                      onClick={(e) => handleTaskClick(e, task)}
-                      className={cn(
-                        "text-[10px] px-1.5 py-1 rounded-md font-medium border truncate transition-transform hover:scale-[1.02]",
-                        getStatusColor(task.status)
-                      )}
-                      title={`${task.title} - ${format(parseISO(task.startTime), 'HH:mm')}`}
-                    >
-                      <span className="font-bold mr-1 opacity-70">{format(parseISO(task.startTime), 'HH:mm')}</span>
-                      {task.title}
-                    </div>
-                  ))}
+                  {dayTasks.map(task => {
+                    // Extraemos la hora directamente del string "YYYY-MM-DDTHH:mm" sin usar Date()
+                    const timeString = task.startTime.includes('T') ? task.startTime.split('T')[1] : '';
+                    
+                    return (
+                      <div 
+                        key={task.id}
+                        onClick={(e) => handleTaskClick(e, task)}
+                        className={cn(
+                          "text-[10px] px-1.5 py-1 rounded-md font-medium border truncate transition-transform hover:scale-[1.02]",
+                          getStatusColor(task.status)
+                        )}
+                        title={`${task.title} - ${timeString}`}
+                      >
+                        <span className="font-bold mr-1 opacity-70">{timeString}</span>
+                        {task.title}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             );

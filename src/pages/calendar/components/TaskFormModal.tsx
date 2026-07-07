@@ -28,10 +28,8 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
   const { data: clients = [] } = useClients();
   const { data: partners = [] } = usePartners();
   
-  // Generar tiempos por defecto usando estrictamente la zona horaria de Lima (sin doble conversión)
   const getDefaultTimes = (selected?: Date) => {
     if (selected) {
-      // Si se clickeó un día específico en el calendario, usamos ese día a las 09:00 AM
       const dateStr = format(selected, 'yyyy-MM-dd');
       return {
         start: `${dateStr}T09:00`,
@@ -39,7 +37,6 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
       };
     }
     
-    // Si es "Nueva Tarea", tomamos la hora en Lima directamente a partir del timestamp actual
     const now = new Date();
     const oneHourLater = new Date(now.getTime() + 3600000);
     
@@ -105,13 +102,20 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
   const selectedPartner = partners.find(p => p.id === formData.partnerId);
   const selectedClient = clients.find(c => c.id === formData.clientId);
 
+  // Parseamos el string manualmente para evitar que Date() interprete la zona horaria
   const formatDateTimeView = (isoString: string) => {
     if (!isoString) return '';
     try {
-      // El input guarda como YYYY-MM-DDTHH:mm
-      // Al pasarlo a new Date(), JavaScript lo interpreta en la hora local del navegador
-      const d = new Date(isoString);
-      return format(d, "d 'de' MMMM, yyyy - HH:mm", { locale: es });
+      const parts = isoString.split('T');
+      const datePart = parts[0];
+      const timePart = parts[1] || '';
+      
+      const [year, month, day] = datePart.split('-');
+      // Ponemos 12:00:00 como hora base para evitar que desfases locales salten al día anterior
+      const d = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10), 12, 0, 0);
+      const formattedDate = format(d, "d 'de' MMMM, yyyy", { locale: es });
+      
+      return timePart ? `${formattedDate} - ${timePart}` : formattedDate;
     } catch (e) {
       return isoString;
     }
