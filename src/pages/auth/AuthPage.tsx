@@ -1,6 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
 import { AuthView } from '@neondatabase/auth/react';
-import { Activity } from 'lucide-react';
 import './auth.css';
 
 export function AuthPage() {
@@ -15,12 +14,12 @@ export function AuthPage() {
         
         {/* Logo and Brand */}
         <div className="flex flex-col items-center gap-4 mb-8 justify-center group">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 border border-blue-500 relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
-            {/* 
-              NOTA: Si tienes una imagen real para tu logo, puedes reemplazar el icono <Activity /> por:
-              <img src="/logo.svg" alt="Inspira Logo" className="w-10 h-10 object-contain relative z-10" />
-            */}
-            <Activity className="w-8 h-8 relative z-10" strokeWidth={2} />
+          <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-zinc-200/50 border border-zinc-200 relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
+            <img 
+              src="/logo.jpg" 
+              alt="Inspira Logo" 
+              className="w-full h-full object-cover" 
+            />
           </div>
           <div className="flex flex-col items-center">
             <span className="font-extrabold text-3xl tracking-tight text-zinc-900">Inspira</span>
