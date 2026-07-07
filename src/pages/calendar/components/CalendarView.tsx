@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { format, addDays, subDays, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, User, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Task } from '@/hooks/useTasks';
@@ -244,7 +244,7 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
                   key={task.id}
                   onClick={(e) => handleTaskClick(e, task)}
                   className={cn(
-                    "absolute rounded-lg p-2 border shadow-sm cursor-pointer pointer-events-auto transition-transform hover:scale-[1.01] overflow-hidden group",
+                    "absolute rounded-lg p-2 border shadow-sm cursor-pointer pointer-events-auto transition-transform hover:scale-[1.01] overflow-hidden group flex flex-col",
                     getStatusColor(task.status)
                   )}
                   style={{ 
@@ -256,22 +256,30 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
                     zIndex: 10 + task.column
                   }}
                 >
-                  <div className="flex flex-col h-full overflow-hidden">
-                    <div className="text-xs font-bold truncate leading-tight">{task.title}</div>
-                    
-                    {height >= 40 && (
-                      <div className="text-[10px] font-mono font-semibold opacity-70 mt-1 truncate">
-                        {startDisplay} - {endDisplay}
-                      </div>
-                    )}
+                  <div className="text-xs font-bold truncate leading-tight shrink-0">{task.title}</div>
+                  
+                  {height >= 40 && (
+                    <div className="text-[10px] font-mono font-semibold opacity-70 mt-1 truncate shrink-0">
+                      {startDisplay} - {endDisplay}
+                    </div>
+                  )}
 
-                    {height >= 55 && task.partner?.name && (
-                      <div className="text-[10px] truncate opacity-90 mt-1 font-medium flex items-center gap-1 bg-white/30 px-1.5 py-0.5 rounded w-max max-w-full">
-                         <User className="w-3 h-3 shrink-0" />
-                         <span className="truncate">{task.partner.name}</span>
-                      </div>
-                    )}
-                  </div>
+                  {height >= 55 && (task.partner?.name || task.client?.name) && (
+                    <div className="flex flex-wrap gap-1 mt-1 overflow-hidden">
+                      {task.partner?.name && (
+                        <div className="text-[10px] truncate opacity-90 font-medium flex items-center gap-1 bg-white/40 px-1.5 py-0.5 rounded max-w-full">
+                           <User className="w-3 h-3 shrink-0" />
+                           <span className="truncate">{task.partner.name}</span>
+                        </div>
+                      )}
+                      {task.client?.name && (
+                        <div className="text-[10px] truncate opacity-90 font-medium flex items-center gap-1 bg-white/40 px-1.5 py-0.5 rounded max-w-full">
+                           <Briefcase className="w-3 h-3 shrink-0" />
+                           <span className="truncate">{task.client.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
