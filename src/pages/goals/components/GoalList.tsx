@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGoals, useDeleteGoal } from '@/hooks/useGoals';
 import { useClients } from '@/hooks/useClients';
 import { Progress } from '@/components/ui/progress';
 import { formatCurrency, cn } from '@/lib/utils';
-import { Target, TrendingUp, Users, Trash2, History, Search, X } from 'lucide-react';
+import { Target, TrendingUp, Users, Trash2, History, Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DailyLogModal } from './DailyLogModal';
 import { Button } from '@/components/ui/button';
 import { LogHistoryModal } from './LogHistoryModal';
@@ -46,6 +46,15 @@ export function GoalList() {
   const [historyGoal, setHistoryGoal] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
+  
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
+
+  // Resetear a la página 1 cuando cambian los filtros
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, monthFilter]);
 
   if (isLoading) {
     return (
@@ -75,6 +84,13 @@ export function GoalList() {
     
     return matchesSearch && matchesMonth;
   });
+
+  // Cálculos de paginación
+  const totalPages = Math.ceil(filteredGoals.length / ITEMS_PER_PAGE);
+  const paginatedGoals = filteredGoals.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <>
@@ -109,7 +125,7 @@ export function GoalList() {
             )}
           </div>
         </div>
-        <div className="text-sm text-zinc-500 font-medium">
+        <div className="text-sm text-zinc-500 font-medium whitespace-nowrap">
           {filteredGoals.length} {filteredGoals.length === 1 ? 'resultado' : 'resultados'}
         </div>
       </div>
@@ -122,141 +138,176 @@ export function GoalList() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredGoals.map((goal) => {
-            const client = clients?.find(c => c.id === goal.clientId);
-            const currentPatients = goal.dailyLogs?.reduce((acc: number, log: any) => acc + log.count, 0) || 0;
-            const progressPercentage = Math.min((currentPatients / goal.targetPatients) * 100, 100);
-            
-            // Lógica de Pacing (Ritmo)
-            const pacing = calculatePacing(goal.monthYear, goal.targetPatients);
-            const isOnTrack = currentPatients >= pacing.expectedPatients;
-            
-            const costVal = Number(goal.costPerPatient);
-            const earnedMoney = currentPatients * costVal;
-            const projectedMoney = goal.targetPatients * costVal;
-            
-            // Colores Dinámicos basados en si estamos atrasados o a tiempo
-            const progressColor = progressPercentage >= 100 
-              ? "[&>div]:bg-emerald-500" 
-              : isOnTrack 
-                ? "[&>div]:bg-blue-500" 
-                : "[&>div]:bg-amber-500";
-                
-            const badgeColor = progressPercentage >= 100 
-              ? "bg-emerald-100 text-emerald-700" 
-              : "bg-blue-50 text-blue-700";
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {paginatedGoals.map((goal) => {
+              const client = clients?.find(c => c.id === goal.clientId);
+              const currentPatients = goal.dailyLogs?.reduce((acc: number, log: any) => acc + log.count, 0) || 0;
+              const progressPercentage = Math.min((currentPatients / goal.targetPatients) * 100, 100);
+              
+              // Lógica de Pacing (Ritmo)
+              const pacing = calculatePacing(goal.monthYear, goal.targetPatients);
+              const isOnTrack = currentPatients >= pacing.expectedPatients;
+              
+              const costVal = Number(goal.costPerPatient);
+              const earnedMoney = currentPatients * costVal;
+              const projectedMoney = goal.targetPatients * costVal;
+              
+              // Colores Dinámicos basados en si estamos atrasados o a tiempo
+              const progressColor = progressPercentage >= 100 
+                ? "[&>div]:bg-emerald-500" 
+                : isOnTrack 
+                  ? "[&>div]:bg-blue-500" 
+                  : "[&>div]:bg-amber-500";
+                  
+              const badgeColor = progressPercentage >= 100 
+                ? "bg-emerald-100 text-emerald-700" 
+                : "bg-blue-50 text-blue-700";
 
-            return (
-              <div key={goal.id} className="glass rounded-[2rem] p-6 shadow-sm border border-zinc-200/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
-                
-                <div className="flex justify-between items-start mb-4 relative z-10">
-                  <div>
-                    <span className={cn("text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider", badgeColor)}>
-                      {formatLocalDateString(goal.monthYear, 'MMMM yyyy')}
-                    </span>
-                    <h3 className="text-lg font-bold text-zinc-900 mt-3 truncate pr-4">
-                      {client?.name || 'Cargando cliente...'}
-                    </h3>
+              return (
+                <div key={goal.id} className="glass rounded-[2rem] p-6 shadow-sm border border-zinc-200/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+                  
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <div>
+                      <span className={cn("text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider", badgeColor)}>
+                        {formatLocalDateString(goal.monthYear, 'MMMM yyyy')}
+                      </span>
+                      <h3 className="text-lg font-bold text-zinc-900 mt-3 truncate pr-4">
+                        {client?.name || 'Cargando cliente...'}
+                      </h3>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 hover:bg-red-50 -mt-2 -mr-2"
+                      onClick={() => { if(confirm('¿Eliminar esta meta?')) deleteMutation.mutate(goal.id); }}
+                      disabled={deleteMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 hover:bg-red-50 -mt-2 -mr-2"
-                    onClick={() => { if(confirm('¿Eliminar esta meta?')) deleteMutation.mutate(goal.id); }}
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
 
-                <div className="space-y-6 relative z-10">
-                  <div>
-                    <div className="flex justify-between items-end mb-2">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-zinc-500 text-sm font-medium flex items-center gap-1.5">
-                          <Users className="w-4 h-4"/> Pacientes
-                        </span>
-                        {pacing.expectedPatients > 0 && progressPercentage < 100 && (
-                          <span className={cn("text-xs font-semibold", isOnTrack ? "text-emerald-600" : "text-amber-600")}>
-                            Esperado a hoy: {pacing.expectedPatients}
+                  <div className="space-y-6 relative z-10">
+                    <div>
+                      <div className="flex justify-between items-end mb-2">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-zinc-500 text-sm font-medium flex items-center gap-1.5">
+                            <Users className="w-4 h-4"/> Pacientes
                           </span>
+                          {pacing.expectedPatients > 0 && progressPercentage < 100 && (
+                            <span className={cn("text-xs font-semibold", isOnTrack ? "text-emerald-600" : "text-amber-600")}>
+                              Esperado a hoy: {pacing.expectedPatients}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <span className="text-zinc-900 font-mono font-medium">
+                            {currentPatients} / {goal.targetPatients}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="relative">
+                        <Progress value={progressPercentage} className={cn("h-2.5 bg-zinc-100", progressColor)} />
+                        
+                        {/* Marcador del Indicador de Ritmo */}
+                        {pacing.expectedPercentage > 0 && pacing.expectedPercentage < 100 && (
+                           <div
+                             className={cn(
+                               "absolute top-1/2 -translate-y-1/2 w-1 h-4 rounded-full shadow-sm z-10 border border-white",
+                               isOnTrack ? "bg-emerald-500" : "bg-amber-500"
+                             )}
+                             style={{ left: `calc(${pacing.expectedPercentage}% - 2px)` }}
+                             title={`Progreso esperado: ${pacing.expectedPatients}`}
+                           />
                         )}
                       </div>
-                      <div className="text-right">
-                        <span className="text-zinc-900 font-mono font-medium">
-                          {currentPatients} / {goal.targetPatients}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="relative">
-                      <Progress value={progressPercentage} className={cn("h-2.5 bg-zinc-100", progressColor)} />
                       
-                      {/* Marcador del Indicador de Ritmo */}
-                      {pacing.expectedPercentage > 0 && pacing.expectedPercentage < 100 && (
-                         <div
-                           className={cn(
-                             "absolute top-1/2 -translate-y-1/2 w-1 h-4 rounded-full shadow-sm z-10 border border-white",
-                             isOnTrack ? "bg-emerald-500" : "bg-amber-500"
-                           )}
-                           style={{ left: `calc(${pacing.expectedPercentage}% - 2px)` }}
-                           title={`Progreso esperado: ${pacing.expectedPatients}`}
-                         />
-                      )}
-                    </div>
-                    
-                    <div className="flex justify-between mt-1.5 text-xs font-bold">
-                      <span className={cn(
-                        progressPercentage >= 100 ? "text-emerald-600" : isOnTrack ? "text-blue-600" : "text-amber-600"
-                      )}>
-                        {progressPercentage >= 100 ? 'Meta completada 🎉' : isOnTrack ? 'A buen ritmo' : 'Requiere atención'}
-                      </span>
-                      <span className="text-zinc-400">{progressPercentage.toFixed(1)}%</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-zinc-50/50 rounded-xl p-4 border border-zinc-100 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", progressPercentage >= 100 ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-blue-600")}>
-                        <TrendingUp className="w-5 h-5" />
+                      <div className="flex justify-between mt-1.5 text-xs font-bold">
+                        <span className={cn(
+                          progressPercentage >= 100 ? "text-emerald-600" : isOnTrack ? "text-blue-600" : "text-amber-600"
+                        )}>
+                          {progressPercentage >= 100 ? 'Meta completada 🎉' : isOnTrack ? 'A buen ritmo' : 'Requiere atención'}
+                        </span>
+                        <span className="text-zinc-400">{progressPercentage.toFixed(1)}%</span>
                       </div>
-                      <div>
-                        <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Acumulado</p>
-                        <p className="text-lg font-bold text-zinc-900 font-mono">
-                          {formatCurrency(earnedMoney)}
+                    </div>
+
+                    <div className="bg-zinc-50/50 rounded-xl p-4 border border-zinc-100 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", progressPercentage >= 100 ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-blue-600")}>
+                          <TrendingUp className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Acumulado</p>
+                          <p className="text-lg font-bold text-zinc-900 font-mono">
+                            {formatCurrency(earnedMoney)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide">Proyección</p>
+                        <p className="text-sm font-bold text-zinc-400 font-mono">
+                          {formatCurrency(projectedMoney)}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide">Proyección</p>
-                      <p className="text-sm font-bold text-zinc-400 font-mono">
-                        {formatCurrency(projectedMoney)}
-                      </p>
+
+                    <div className="pt-2 flex justify-between items-center">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-xs h-9 rounded-xl border-zinc-200 text-zinc-600 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                        onClick={() => setHistoryGoal(goal)}
+                      >
+                        <History className="w-3.5 h-3.5 mr-1.5" />
+                        Historial ({goal.dailyLogs?.length || 0})
+                      </Button>
+                      <DailyLogModal goalId={goal.id} />
                     </div>
                   </div>
-
-                  <div className="pt-2 flex justify-between items-center">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="text-xs h-9 rounded-xl border-zinc-200 text-zinc-600 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-200 transition-colors"
-                      onClick={() => setHistoryGoal(goal)}
-                    >
-                      <History className="w-3.5 h-3.5 mr-1.5" />
-                      Historial ({goal.dailyLogs?.length || 0})
-                    </Button>
-                    <DailyLogModal goalId={goal.id} />
-                  </div>
+                  
+                  {progressPercentage >= 100 && (
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 blur-3xl rounded-full -z-10 pointer-events-none"></div>
+                  )}
                 </div>
-                
-                {progressPercentage >= 100 && (
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 blur-3xl rounded-full -z-10 pointer-events-none"></div>
-                )}
+              );
+            })}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 bg-white/50 p-4 rounded-2xl border border-zinc-200/60 shadow-sm">
+              <span className="text-sm text-zinc-500 font-medium">
+                Mostrando {(currentPage - 1) * ITEMS_PER_PAGE + 1} al {Math.min(currentPage * ITEMS_PER_PAGE, filteredGoals.length)} de {filteredGoals.length} metas
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="bg-white"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Anterior
+                </Button>
+                <div className="text-sm font-medium text-zinc-700 px-2 min-w-[100px] text-center">
+                  Página {currentPage} de {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="bg-white"
+                >
+                  Siguiente
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          )}
+        </>
       )}
 
       <LogHistoryModal 
