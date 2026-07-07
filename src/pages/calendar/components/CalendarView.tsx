@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { format, addDays, subDays, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Task } from '@/hooks/useTasks';
@@ -29,7 +29,7 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Auto-scroll a las 7:00 AM (420 pixeles)
+  // Auto-scroll a las 7:00 AM
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = 7 * 60;
@@ -76,42 +76,87 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
     setIsModalOpen(false);
   };
 
-  // Helper para extraer los minutos desde las 00:00 del string original
   const getMinutesFromMidnight = (dateString: string) => {
     const normalized = dateString.replace(' ', 'T');
     const [datePart, timePart] = normalized.split('T');
     
-    if (datePart < targetDateStr) return 0; // Inició antes de hoy
-    if (datePart > targetDateStr) return 24 * 60; // Termina después de hoy
+    if (datePart < targetDateStr) return 0; 
+    if (datePart > targetDateStr) return 24 * 60; 
     
     const [h, m] = (timePart || "00:00").split(':').map(Number);
     return h * 60 + (m || 0);
   };
 
-  // Filtrar las tareas que caen en el día seleccionado
+  // Filtrar tareas del día
   const dayTasks = tasks.filter(t => {
     const startNorm = t.startTime.replace(' ', 'T').split('T')[0];
     const endNorm = t.endTime.replace(' ', 'T').split('T')[0];
     return startNorm <= targetDateStr && endNorm >= targetDateStr;
   });
 
-  // Calcular las posiciones y superposiciones
-  const processedTasks = dayTasks.sort((a, b) => {
-    return getMinutesFromMidnight(a.startTime) - getMinutesFromMidnight(b.startTime);
-  }).map((task, index, array) => {
+  // ALGORITMO ESTILO GOOGLE CALENDAR
+  // 1. Mapear y ordenar
+  const mappedTasks = dayTasks.map(task => {
     const startMins = getMinutesFromMidnight(task.startTime);
-    const endMins = getMinutesFromMidnight(task.endTime);
+    const rawEndMins = getMinutesFromMidnight(task.endTime);
+    // Para calcular superposiciones, asumimos que cada tarea dura al menos 30 minutos
+    const layoutEndMins = Math.max(rawEndMins, startMins + 30);
     
-    // Contar tareas anteriores con las que se cruza (para visualización en cascada)
-    let overlapIndex = 0;
-    for (let i = 0; i < index; i++) {
-      if (array[i].endMins > startMins) {
-        overlapIndex++;
-      }
+    return { ...task, startMins, rawEndMins, layoutEndMins };
+  }).sort((a, b) => {
+    if (a.startMins !== b.startMins) return a.startMins - b.startMins;
+    return b.layoutEndMins - a.layoutEndMins; // Las más largas primero si empiezan igual
+  });
+
+  // 2. Crear grupos (clusters) de tareas superpuestas
+  const clusters: Array<typeof mappedTasks> = [];
+  let currentCluster: typeof mappedTasks = [];
+  let currentClusterEnd = -1;
+
+  mappedTasks.forEach(task => {
+    if (currentCluster.length === 0) {
+      currentCluster.push(task);
+      currentClusterEnd = task.layoutEndMins;
+    } else if (task.startMins < currentClusterEnd) {
+      currentCluster.push(task);
+      currentClusterEnd = Math.max(currentClusterEnd, task.layoutEndMins);
+    } else {
+      clusters.push([...currentCluster]);
+      currentCluster = [task];
+      currentClusterEnd = task.layoutEndMins;
     }
-    overlapIndex = Math.min(overlapIndex, 4); // Límite máximo de cascada
-    
-    return { ...task, startMins, endMins, overlapIndex };
+  });
+  if (currentCluster.length > 0) {
+    clusters.push(currentCluster);
+  }
+
+  // 3. Asignar columnas dentro de cada grupo
+  const processedTasks: any[] = [];
+  clusters.forEach(cluster => {
+    const columns: Array<typeof cluster> = [];
+    cluster.forEach(task => {
+      let placed = false;
+      for (let i = 0; i < columns.length; i++) {
+        const lastInColumn = columns[i][columns[i].length - 1];
+        // Si no choca con la última de esta columna, entra aquí
+        if (lastInColumn.layoutEndMins <= task.startMins) {
+          columns[i].push(task);
+          (task as any).column = i;
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        (task as any).column = columns.length;
+        columns.push([task]);
+      }
+    });
+
+    const columnCount = columns.length;
+    cluster.forEach(task => {
+      (task as any).columnCount = columnCount;
+      processedTasks.push(task);
+    });
   });
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -183,11 +228,13 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
             </div>
           )}
 
-          {/* Tareas */}
-          <div className="absolute left-20 right-0 top-0 bottom-0 pointer-events-none">
+          {/* Tareas usando el algoritmo de columnas */}
+          <div className="absolute left-20 right-0 top-0 bottom-0 pointer-events-none pr-4">
             {processedTasks.map(task => {
               const top = task.startMins;
-              const height = Math.max(task.endMins - task.startMins, 25); // Mínimo 25px para que se pueda hacer clic
+              const height = Math.max(task.rawEndMins - task.startMins, 25);
+              const widthPercent = 100 / task.columnCount;
+              const leftPercent = task.column * widthPercent;
               
               const startDisplay = task.startTime.replace(' ', 'T').split('T')[1]?.substring(0, 5);
               const endDisplay = task.endTime.replace(' ', 'T').split('T')[1]?.substring(0, 5);
@@ -197,31 +244,32 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
                   key={task.id}
                   onClick={(e) => handleTaskClick(e, task)}
                   className={cn(
-                    "absolute rounded-lg p-2 border shadow-sm cursor-pointer pointer-events-auto transition-transform hover:scale-[1.01]",
+                    "absolute rounded-lg p-2 border shadow-sm cursor-pointer pointer-events-auto transition-transform hover:scale-[1.01] overflow-hidden group",
                     getStatusColor(task.status)
                   )}
                   style={{ 
                     top, 
                     height, 
-                    left: 8 + (task.overlapIndex * 24), 
-                    right: 12,
-                    zIndex: 10 + task.overlapIndex
+                    left: `${leftPercent}%`, 
+                    width: `calc(${widthPercent}% - 4px)`,
+                    marginLeft: '4px',
+                    zIndex: 10 + task.column
                   }}
                 >
                   <div className="flex flex-col h-full overflow-hidden">
                     <div className="text-xs font-bold truncate leading-tight">{task.title}</div>
                     
-                    {height >= 45 && (
-                      <>
-                        <div className="text-[10px] font-mono font-semibold opacity-70 mt-1">
-                          {startDisplay} - {endDisplay}
-                        </div>
-                        {task.description && (
-                          <div className="text-[10px] truncate opacity-80 mt-0.5 leading-tight">
-                            {task.description}
-                          </div>
-                        )}
-                      </>
+                    {height >= 40 && (
+                      <div className="text-[10px] font-mono font-semibold opacity-70 mt-1 truncate">
+                        {startDisplay} - {endDisplay}
+                      </div>
+                    )}
+
+                    {height >= 55 && task.partner?.name && (
+                      <div className="text-[10px] truncate opacity-90 mt-1 font-medium flex items-center gap-1 bg-white/30 px-1.5 py-0.5 rounded w-max max-w-full">
+                         <User className="w-3 h-3 shrink-0" />
+                         <span className="truncate">{task.partner.name}</span>
+                      </div>
                     )}
                   </div>
                 </div>
