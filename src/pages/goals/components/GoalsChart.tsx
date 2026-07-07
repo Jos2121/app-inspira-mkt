@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { getCurrentDateLimaISO } from '@/lib/date-utils';
-import { formatCurrency } from '@/lib/utils';
 
 const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
@@ -16,7 +15,6 @@ export function GoalsChart() {
   const currentYear = getCurrentDateLimaISO().split('-')[0];
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedClient, setSelectedClient] = useState<string>('all');
-  const [metric, setMetric] = useState<'patients' | 'revenue'>('patients');
 
   const chartData = useMemo(() => {
     const data = MONTHS.map((month, index) => ({
@@ -39,19 +37,13 @@ export function GoalsChart() {
       if (monthIdx >= 0 && monthIdx < 12) {
         const achievedPatients = goal.dailyLogs?.reduce((acc: any, log: any) => acc + log.count, 0) || 0;
         
-        if (metric === 'patients') {
-          data[monthIdx].meta += goal.targetPatients;
-          data[monthIdx].logrado += achievedPatients;
-        } else {
-          const cost = Number(goal.costPerPatient);
-          data[monthIdx].meta += goal.targetPatients * cost;
-          data[monthIdx].logrado += achievedPatients * cost;
-        }
+        data[monthIdx].meta += goal.targetPatients;
+        data[monthIdx].logrado += achievedPatients;
       }
     });
 
     return data;
-  }, [goals, selectedYear, selectedClient, metric]);
+  }, [goals, selectedYear, selectedClient]);
 
   const years = useMemo(() => {
     const y = new Set(goals.map(g => g.monthYear.split('-')[0]));
@@ -65,20 +57,10 @@ export function GoalsChart() {
     <Card className="glass rounded-[2rem] border-zinc-200/50 shadow-sm overflow-hidden mb-8">
       <CardHeader className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-2">
         <div>
-          <CardTitle className="text-xl font-bold text-zinc-900">Balance de Metas Anual</CardTitle>
-          <CardDescription>Visualiza el progreso mensual por cliente y compara la meta vs lo logrado.</CardDescription>
+          <CardTitle className="text-xl font-bold text-zinc-900">Balance de Pacientes Anual</CardTitle>
+          <CardDescription>Visualiza la meta proyectada de pacientes vs la cantidad lograda por mes.</CardDescription>
         </div>
         <div className="flex flex-wrap gap-2 w-full lg:w-auto">
-          <Select value={metric} onValueChange={(val: 'patients' | 'revenue') => setMetric(val)}>
-            <SelectTrigger className="w-[140px] bg-white border-zinc-200">
-              <SelectValue placeholder="Métrica" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="patients">Pacientes</SelectItem>
-              <SelectItem value="revenue">Ingresos (S/)</SelectItem>
-            </SelectContent>
-          </Select>
-
           <Select value={selectedClient} onValueChange={setSelectedClient}>
             <SelectTrigger className="w-[180px] bg-white border-zinc-200 flex-1 sm:flex-none">
               <SelectValue placeholder="Todos los clientes" />
@@ -106,26 +88,25 @@ export function GoalsChart() {
       <CardContent className="pt-4">
         <div className="h-[350px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 10, right: 10, left: metric === 'revenue' ? 20 : -20, bottom: 0 }}>
+            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#71717a', fontSize: 12 }} dy={10} />
               <YAxis 
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fill: '#71717a', fontSize: 12 }} 
-                tickFormatter={(value) => metric === 'revenue' ? `S/ ${value}` : value.toString()}
               />
               <RechartsTooltip 
                 cursor={{ fill: '#f4f4f5' }}
                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '12px' }}
                 formatter={(value: number, name: string) => [
-                  metric === 'revenue' ? formatCurrency(value) : value, 
-                  name
+                  value, 
+                  name === 'meta' ? 'Meta (Pacientes)' : 'Logrado (Pacientes)'
                 ]}
               />
               <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-              <Bar dataKey="meta" name={metric === 'revenue' ? 'Meta Proyectada' : 'Meta (Pacientes)'} fill="#94a3b8" radius={[4, 4, 0, 0]} maxBarSize={40} />
-              <Bar dataKey="logrado" name={metric === 'revenue' ? 'Ingreso Generado' : 'Logrado (Pacientes)'} fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={40} />
+              <Bar dataKey="meta" name="Meta (Pacientes)" fill="#94a3b8" radius={[4, 4, 0, 0]} maxBarSize={40} />
+              <Bar dataKey="logrado" name="Logrado (Pacientes)" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={40} />
             </BarChart>
           </ResponsiveContainer>
         </div>
