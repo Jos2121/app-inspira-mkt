@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Target, Wallet, PanelLeftClose, PanelLeft, UserSquare2, CalendarDays, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Users, Target, Wallet, PanelLeftClose, PanelLeft, UserSquare2, CalendarDays, ShieldCheck, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -13,6 +13,7 @@ export const navItems = [
   { icon: Wallet, label: 'Finanzas', path: '/finance' },
   { icon: Users, label: 'Clientes', path: '/clients' },
   { icon: UserSquare2, label: 'Staff / Socios', path: '/partners' },
+  { icon: Activity, label: 'Diagnóstico', path: '/diagnostic' },
 ];
 
 interface SidebarProps {

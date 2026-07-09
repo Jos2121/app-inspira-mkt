@@ -79,6 +79,15 @@ export const complianceRecords = pgTable('compliance_records', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
+// NUEVO: Planes de la Agencia (Marketing/Servicios) para el Diagnosticador
+export const agencyPlans = pgTable('agency_plans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  price: numeric('price', { precision: 10, scale: 2 }).notNull(),
+  benefits: jsonb('benefits').notNull().$type<string[]>(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
 // Relations
 export const goalsRelations = relations(goals, ({ one, many }) => ({
   client: one(clients, { fields: [goals.clientId], references: [clients.id] }),
