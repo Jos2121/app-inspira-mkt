@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, numeric, uuid, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, numeric, uuid, integer, jsonb } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const clients = pgTable('clients', {
@@ -20,7 +20,7 @@ export const partners = pgTable('partners', {
   name: text('name').notNull(),
   role: text('role').notNull(),
   phone: text('phone'),
-  status: text('status').notNull().default('Activo'), // Activo, Inactivo
+  status: text('status').notNull().default('Activo'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
@@ -43,7 +43,7 @@ export const dailyLogs = pgTable('daily_logs', {
 
 export const transactions = pgTable('transactions', {
   id: uuid('id').primaryKey().defaultRandom(),
-  type: text('type').notNull(), // 'Ingreso' o 'Gasto'
+  type: text('type').notNull(),
   category: text('category').notNull(),
   amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
   date: text('date').notNull(),
@@ -59,7 +59,23 @@ export const tasks = pgTable('tasks', {
   endTime: text('end_time').notNull(),
   partnerId: uuid('partner_id').references(() => partners.id, { onDelete: 'set null' }),
   clientId: uuid('client_id').references(() => clients.id, { onDelete: 'set null' }),
-  status: text('status').notNull().default('Pendiente'), // Pendiente, En Proceso, Completada
+  status: text('status').notNull().default('Pendiente'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+export const plans = pgTable('plans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  activities: jsonb('activities').notNull().$type<string[]>(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+export const complianceRecords = pgTable('compliance_records', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }),
+  planId: uuid('plan_id').notNull().references(() => plans.id, { onDelete: 'restrict' }),
+  monthYear: text('month_year').notNull(),
+  checklist: jsonb('checklist').notNull().$type<Record<string, boolean>>(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
@@ -76,4 +92,9 @@ export const dailyLogsRelations = relations(dailyLogs, ({ one }) => ({
 export const tasksRelations = relations(tasks, ({ one }) => ({
   partner: one(partners, { fields: [tasks.partnerId], references: [partners.id] }),
   client: one(clients, { fields: [tasks.clientId], references: [clients.id] }),
+}));
+
+export const complianceRecordsRelations = relations(complianceRecords, ({ one }) => ({
+  client: one(clients, { fields: [complianceRecords.clientId], references: [clients.id] }),
+  plan: one(plans, { fields: [complianceRecords.planId], references: [plans.id] }),
 }));

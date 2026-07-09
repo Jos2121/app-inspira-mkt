@@ -12,6 +12,7 @@ import Goals from "./pages/goals/Goals";
 import Finance from "./pages/finance/Finance";
 import Partners from "./pages/partners/Partners";
 import CalendarPage from "./pages/calendar/Calendar";
+import Compliance from "./pages/compliance/Compliance";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,10 +30,11 @@ const App = () => (
             <Route element={<AppLayout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/goals" element={<Goals />} />
+              <Route path="/compliance" element={<Compliance />} />
               <Route path="/finance" element={<Finance />} />
               <Route path="/clients" element={<Clients />} />
               <Route path="/partners" element={<Partners />} />
-              <Route path="/goals" element={<Goals />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
