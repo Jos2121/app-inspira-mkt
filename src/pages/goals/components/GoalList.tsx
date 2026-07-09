@@ -45,7 +45,9 @@ export function GoalList() {
 
   const [historyGoal, setHistoryGoal] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [monthFilter, setMonthFilter] = useState('');
+  
+  // APLICANDO MES ACTUAL POR DEFECTO COMO EN CUMPLIMIENTO
+  const [monthFilter, setMonthFilter] = useState(getCurrentDateLimaISO().substring(0, 7));
   
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);

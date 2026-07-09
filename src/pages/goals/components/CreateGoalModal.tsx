@@ -8,6 +8,7 @@ import { Plus } from 'lucide-react';
 import { useClients } from '@/hooks/useClients';
 import { useCreateGoal } from '@/hooks/useGoals';
 import { toast } from 'sonner';
+import { getCurrentDateLimaISO } from '@/lib/date-utils';
 
 export function CreateGoalModal() {
   const [open, setOpen] = useState(false);
@@ -71,7 +72,14 @@ export function CreateGoalModal() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="monthYear">Mes y Año</Label>
-            <Input id="monthYear" name="monthYear" type="month" required className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" />
+            <Input 
+              id="monthYear" 
+              name="monthYear" 
+              type="month" 
+              required 
+              defaultValue={getCurrentDateLimaISO().substring(0, 7)}
+              className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
