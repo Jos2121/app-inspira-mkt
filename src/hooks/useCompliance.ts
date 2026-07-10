@@ -59,14 +59,17 @@ export function useUpdatePlan() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Error al actualizar el plan');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error al actualizar el plan');
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['plans'] });
       toast.success('Plan actualizado exitosamente');
     },
-    onError: () => toast.error('Error al actualizar plan')
+    onError: (error) => toast.error(error.message)
   });
 }
 
@@ -134,7 +137,6 @@ export function useUpdateComplianceChecklist() {
     },
     onSuccess: () => {
       // Invalidation omitted to avoid flickering during fast toggles. 
-      // Relying on optimistic updates in the component instead.
     },
     onError: () => toast.error('Error al actualizar progreso')
   });

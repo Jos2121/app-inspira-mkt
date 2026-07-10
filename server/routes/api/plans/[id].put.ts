@@ -13,14 +13,19 @@ export default defineHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Datos de plan inválidos' });
   }
 
-  const [updated] = await db.update(plans).set({
-    name: body.name,
-    activities: body.activities,
-  }).where(eq(plans.id, id)).returning();
+  try {
+    const [updated] = await db.update(plans).set({
+      name: body.name,
+      activities: body.activities,
+    }).where(eq(plans.id, id)).returning();
 
-  if (!updated) {
-    throw createError({ statusCode: 404, message: 'Plan no encontrado' });
+    if (!updated) {
+      throw createError({ statusCode: 404, message: 'Plan no encontrado' });
+    }
+
+    return updated;
+  } catch (error: any) {
+    console.error('Error updating plan:', error);
+    throw createError({ statusCode: 500, message: error.message || 'Error interno del servidor al actualizar' });
   }
-
-  return updated;
 });
