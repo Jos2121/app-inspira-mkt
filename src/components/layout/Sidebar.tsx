@@ -73,7 +73,7 @@ export function Sidebar({
             "flex flex-col items-center transition-all duration-300 overflow-hidden", 
             isCollapsed ? "h-0 opacity-0" : "h-16 opacity-100"
           )}>
-            <h2 className="font-bold text-xl text-zinc-900 tracking-tight whitespace-nowrap">Gestión MVP</h2>
+            <h2 className="font-bold text-xl text-zinc-900 tracking-tight whitespace-nowrap">Inspira Mkt</h2>
             <div className="mt-3 px-3 py-1 bg-blue-50/80 border border-blue-200/50 text-blue-700 text-xs font-mono font-bold rounded-full uppercase tracking-widest whitespace-nowrap shadow-sm shadow-blue-500/5">
               {role}
             </div>
