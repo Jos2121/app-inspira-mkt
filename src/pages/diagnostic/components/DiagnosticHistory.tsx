@@ -1,7 +1,8 @@
+import { useState, useEffect } from 'react';
 import { useDiagnosticRecords, useDeleteDiagnosticRecord } from '@/hooks/useDiagnostic';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, Trash2 } from 'lucide-react';
+import { Download, FileText, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatLocalDateString } from '@/lib/date-utils';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/utils';
@@ -20,6 +21,19 @@ import {
 export function DiagnosticHistory() {
   const { data: records = [], isLoading } = useDiagnosticRecords();
   const deleteRecord = useDeleteDiagnosticRecord();
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [records.length]);
+
+  const totalPages = Math.ceil(records.length / ITEMS_PER_PAGE);
+  const paginatedRecords = records.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const handleDownloadPDF = (record: any) => {
     // Implementación rápida y estilizada usando window.print()
@@ -88,89 +102,125 @@ export function DiagnosticHistory() {
   if (isLoading) return <div className="animate-pulse h-64 bg-white/50 rounded-2xl"></div>;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden animate-in fade-in duration-500">
-      <Table>
-        <TableHeader className="bg-zinc-50/50">
-          <TableRow>
-            <TableHead>Fecha</TableHead>
-            <TableHead>Prospecto</TableHead>
-            <TableHead>Plan Ofrecido</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {records.length === 0 ? (
+    <div className="space-y-4 animate-in fade-in duration-500">
+      <div className="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden">
+        <Table>
+          <TableHeader className="bg-zinc-50/50">
             <TableRow>
-              <TableCell colSpan={4} className="text-center py-12 text-zinc-500">
-                <FileText className="w-8 h-8 mx-auto mb-3 text-zinc-300" />
-                No hay diagnósticos guardados en el historial.
-              </TableCell>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Prospecto</TableHead>
+              <TableHead>Plan Ofrecido</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
-          ) : (
-            records.map(record => (
-              <TableRow key={record.id} className="hover:bg-zinc-50/50">
-                <TableCell className="font-medium text-zinc-600 capitalize whitespace-nowrap">
-                  {formatLocalDateString(record.dateLimaISO, "dd MMM yyyy")}
-                </TableCell>
-                <TableCell>
-                  <div className="font-bold text-zinc-900">{record.prospectName}</div>
-                  <div className="text-xs text-zinc-500 font-mono mt-0.5">{record.prospectWhatsapp}</div>
-                </TableCell>
-                <TableCell>
-                  {record.plan ? (
-                    <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-                      {record.plan.name}
-                    </Badge>
-                  ) : (
-                    <span className="text-sm text-zinc-400">Solo Análisis</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="border-zinc-200 hover:bg-zinc-100 rounded-xl text-zinc-700"
-                      onClick={() => handleDownloadPDF(record)}
-                    >
-                      <Download className="w-4 h-4 mr-2" /> PDF
-                    </Button>
-
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-9 w-9 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl border border-transparent hover:border-red-100"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="rounded-[2rem] z-[100]">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>¿Eliminar auditoría?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Se eliminará el registro de la auditoría de forma permanente.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={() => deleteRecord.mutate(record.id)}
-                            className="bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-600/20"
-                          >
-                            Eliminar
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
+          </TableHeader>
+          <TableBody>
+            {records.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-12 text-zinc-500">
+                  <FileText className="w-8 h-8 mx-auto mb-3 text-zinc-300" />
+                  No hay diagnósticos guardados en el historial.
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              paginatedRecords.map(record => (
+                <TableRow key={record.id} className="hover:bg-zinc-50/50">
+                  <TableCell className="font-medium text-zinc-600 capitalize whitespace-nowrap">
+                    {formatLocalDateString(record.dateLimaISO, "dd MMM yyyy")}
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-bold text-zinc-900">{record.prospectName}</div>
+                    <div className="text-xs text-zinc-500 font-mono mt-0.5">{record.prospectWhatsapp}</div>
+                  </TableCell>
+                  <TableCell>
+                    {record.plan ? (
+                      <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                        {record.plan.name}
+                      </Badge>
+                    ) : (
+                      <span className="text-sm text-zinc-400">Solo Análisis</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="border-zinc-200 hover:bg-zinc-100 rounded-xl text-zinc-700"
+                        onClick={() => handleDownloadPDF(record)}
+                      >
+                        <Download className="w-4 h-4 mr-2" /> PDF
+                      </Button>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-9 w-9 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl border border-transparent hover:border-red-100"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="rounded-[2rem] z-[100]">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Eliminar auditoría?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta acción no se puede deshacer. Se eliminará el registro de la auditoría de forma permanente.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => deleteRecord.mutate(record.id)}
+                              className="bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-600/20"
+                            >
+                              Eliminar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Paginación */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/50 p-4 rounded-2xl border border-zinc-200/60 shadow-sm">
+          <span className="text-sm text-zinc-500 font-medium">
+            Mostrando {(currentPage - 1) * ITEMS_PER_PAGE + 1} al {Math.min(currentPage * ITEMS_PER_PAGE, records.length)} de {records.length} reportes
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="bg-white rounded-xl"
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              Anterior
+            </Button>
+            <div className="text-sm font-medium text-zinc-700 px-2 min-w-[100px] text-center">
+              Página {currentPage} de {totalPages}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="bg-white rounded-xl"
+            >
+              Siguiente
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
