@@ -174,3 +174,17 @@ export function useCreateDiagnosticRecord() {
     onError: () => toast.error('Error al guardar auditoría')
   });
 }
+
+// --- Hook Búsqueda DNI ---
+export function useSearchDNI() {
+  return useMutation({
+    mutationFn: async (dni: string) => {
+      const res = await fetch(`/api/dni/${dni}`);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error al consultar DNI');
+      }
+      return res.json();
+    }
+  });
+}

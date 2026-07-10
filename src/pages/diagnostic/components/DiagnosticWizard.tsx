@@ -4,6 +4,7 @@ import {
   useAgencyPlans, 
   useGenerateDiagnosticReport, 
   useCreateDiagnosticRecord, 
+  useSearchDNI,
   DiagnosticResultItem 
 } from '@/hooks/useDiagnostic';
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Activity, Phone, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Activity, Phone, Sparkles, CheckCircle2, Search, Loader2 } from 'lucide-react';
 import { getCurrentDateLimaISO } from '@/lib/date-utils';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -23,9 +24,10 @@ export function DiagnosticWizard() {
   
   const generateReport = useGenerateDiagnosticReport();
   const saveRecord = useCreateDiagnosticRecord();
+  const searchDni = useSearchDNI();
 
   const [step, setStep] = useState(1);
-  const [prospect, setProspect] = useState({ name: '', whatsapp: '' });
+  const [prospect, setProspect] = useState({ dni: '', name: '', whatsapp: '' });
   const [results, setResults] = useState<Record<string, DiagnosticResultItem>>({});
   
   const [reportText, setReportText] = useState('');
@@ -46,6 +48,28 @@ export function DiagnosticWizard() {
 
   const handleObsChange = (q: string, val: string) => {
     setResults(prev => ({ ...prev, [q]: { ...prev[q], observation: val } }));
+  };
+
+  const handleDniSearch = () => {
+    if (prospect.dni.length !== 8) {
+      toast.error('El DNI debe tener 8 dígitos');
+      return;
+    }
+    
+    searchDni.mutate(prospect.dni, {
+      onSuccess: (data) => {
+        if (data && data.nombres) {
+          const fullName = `${data.nombres} ${data.apellidoPaterno} ${data.apellidoMaterno}`.trim();
+          setProspect(prev => ({ ...prev, name: fullName }));
+          toast.success('Datos encontrados y autocompletados');
+        } else {
+          toast.error('No se encontraron datos para este DNI');
+        }
+      },
+      onError: (err) => {
+        toast.error(err.message);
+      }
+    });
   };
 
   const handleGenerate = async () => {
@@ -83,7 +107,7 @@ export function DiagnosticWizard() {
     }, {
       onSuccess: () => {
         setStep(1);
-        setProspect({ name: '', whatsapp: '' });
+        setProspect({ dni: '', name: '', whatsapp: '' });
         setResults({});
         setSelectedPlanId('none');
       }
@@ -118,16 +142,52 @@ export function DiagnosticWizard() {
               <Activity className="w-5 h-5 text-blue-600" />
               Datos del Prospecto
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label>Nombre de la Clínica o Doctor</Label>
-                <Input value={prospect.name} onChange={e => setProspect({ ...prospect, name: e.target.value })} className="h-12 bg-white" placeholder="Ej. OdontoCenter" />
+            
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+              <div className="md:col-span-4 space-y-2">
+                <Label>DNI (Opcional)</Label>
+                <div className="relative flex items-center">
+                  <Input 
+                    value={prospect.dni} 
+                    onChange={e => setProspect({ ...prospect, dni: e.target.value.replace(/\D/g, '').slice(0, 8) })} 
+                    onKeyDown={e => e.key === 'Enter' && handleDniSearch()}
+                    className="h-12 pr-12 bg-white font-mono" 
+                    placeholder="Ej. 12345678" 
+                    maxLength={8}
+                  />
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={handleDniSearch}
+                    disabled={searchDni.isPending || prospect.dni.length !== 8}
+                    className="absolute right-1 h-10 w-10 text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+                  >
+                    {searchDni.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                  </Button>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>WhatsApp de Contacto</Label>
+              
+              <div className="md:col-span-8 space-y-2">
+                <Label>Nombre de la Clínica o Doctor *</Label>
+                <Input 
+                  value={prospect.name} 
+                  onChange={e => setProspect({ ...prospect, name: e.target.value })} 
+                  className={cn("h-12 bg-white transition-colors", searchDni.isSuccess && "border-blue-300 ring-4 ring-blue-500/10")} 
+                  placeholder="Ej. OdontoCenter / Dr. Juan Pérez" 
+                />
+              </div>
+
+              <div className="md:col-span-6 space-y-2">
+                <Label>WhatsApp de Contacto *</Label>
                 <div className="relative">
                   <Phone className="absolute left-3.5 top-3.5 h-5 w-5 text-zinc-400" />
-                  <Input value={prospect.whatsapp} onChange={e => setProspect({ ...prospect, whatsapp: e.target.value })} className="h-12 pl-11 bg-white font-mono" placeholder="+51 999 999 999" />
+                  <Input 
+                    value={prospect.whatsapp} 
+                    onChange={e => setProspect({ ...prospect, whatsapp: e.target.value })} 
+                    className="h-12 pl-11 bg-white font-mono" 
+                    placeholder="+51 999 999 999" 
+                  />
                 </div>
               </div>
             </div>
