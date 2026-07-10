@@ -50,6 +50,26 @@ export function useCreatePlan() {
   });
 }
 
+export function useUpdatePlan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string, data: { name: string; activities: string[] } }) => {
+      const res = await fetch(`/api/plans/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Error al actualizar el plan');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['plans'] });
+      toast.success('Plan actualizado exitosamente');
+    },
+    onError: () => toast.error('Error al actualizar plan')
+  });
+}
+
 export function useDeletePlan() {
   const queryClient = useQueryClient();
   return useMutation({
