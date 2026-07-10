@@ -14,6 +14,13 @@ export function DiagnosticHistory() {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
+    // Generar la lista de beneficios si existen
+    const benefitsHtml = record.plan?.benefits && record.plan.benefits.length > 0 
+      ? `<ul class="plan-benefits">
+          ${record.plan.benefits.map((b: string) => `<li>${b}</li>`).join('')}
+         </ul>` 
+      : '';
+
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="es">
@@ -28,9 +35,11 @@ export function DiagnosticHistory() {
           .section { margin-bottom: 30px; }
           h2 { color: #2563eb; font-size: 20px; border-bottom: 1px solid #e4e4e7; padding-bottom: 8px; }
           pre { font-family: inherit; white-space: pre-wrap; background: #f4f4f5; padding: 20px; border-radius: 8px; border: 1px solid #e4e4e7; font-size: 15px;}
-          .plan-box { background: #ecfdf5; border: 1px solid #a7f3d0; padding: 20px; border-radius: 8px; text-align: center;}
-          .plan-box h3 { margin: 0 0 10px 0; color: #065f46; }
-          .plan-price { font-family: monospace; font-size: 24px; font-weight: bold; color: #047857; }
+          .plan-box { background: #ecfdf5; border: 1px solid #a7f3d0; padding: 25px; border-radius: 8px; text-align: center;}
+          .plan-box h3 { margin: 0 0 10px 0; color: #065f46; font-size: 22px; }
+          .plan-price { font-family: monospace; font-size: 26px; font-weight: bold; color: #047857; margin: 10px 0; }
+          .plan-benefits { text-align: left; margin: 20px auto 0; padding-left: 20px; color: #064e3b; font-size: 15px; max-width: 500px; }
+          .plan-benefits li { margin-bottom: 8px; line-height: 1.4; }
         </style>
       </head>
       <body>
@@ -47,9 +56,9 @@ export function DiagnosticHistory() {
 
         ${record.plan ? `
         <div class="section plan-box">
-          <h3>Plan Recomendado</h3>
-          <p style="font-size: 18px; font-weight: bold; margin:0">${record.plan.name}</p>
+          <h3>Plan Recomendado: ${record.plan.name}</h3>
           <p class="plan-price">${formatCurrency(record.plan.price)} / mes</p>
+          ${benefitsHtml}
         </div>
         ` : ''}
         
