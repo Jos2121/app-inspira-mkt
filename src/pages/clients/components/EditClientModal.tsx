@@ -9,7 +9,7 @@ interface EditClientModalProps {
   client: Client;
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { name: string; email: string; phone: string; address: string }) => void;
+  onSubmit: (data: { name: string; email: string; phone: string }) => void;
   isPending: boolean;
 }
 
@@ -17,20 +17,18 @@ export function EditClientModal({ client, isOpen, onClose, onSubmit, isPending }
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
 
   useEffect(() => {
     if (client) {
       setName(client.name);
       setEmail(client.email || '');
       setPhone(client.phone || '');
-      setAddress(client.address || '');
     }
   }, [client]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit({ name, email, phone, address });
+    onSubmit({ name, email, phone });
   };
 
   return (
@@ -66,15 +64,6 @@ export function EditClientModal({ client, isOpen, onClose, onSubmit, isPending }
               id="edit-phone" 
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-address">Dirección</Label>
-            <Input 
-              id="edit-address" 
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
               className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
             />
           </div>

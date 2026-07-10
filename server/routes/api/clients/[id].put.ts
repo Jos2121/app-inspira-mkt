@@ -18,7 +18,6 @@ export default defineHandler(async (event) => {
     name: body.name,
     email: body.email,
     phone: body.phone,
-    address: body.address,
   }).where(eq(clients.id, id)).returning();
 
   return updatedClient;
