@@ -5,6 +5,17 @@ import { Label } from '@/components/ui/label';
 import { Trash2, Plus, GripVertical } from 'lucide-react';
 import { usePlans, useCreatePlan, useDeletePlan } from '@/hooks/useCompliance';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export function PlanConfig() {
   const { data: plans = [], isLoading } = usePlans();
@@ -125,15 +136,36 @@ export function PlanConfig() {
           <div className="grid gap-4">
             {plans.map((plan) => (
               <div key={plan.id} className="glass rounded-[1.5rem] p-5 border border-zinc-200/50 relative group transition-all hover:shadow-md">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => { if(confirm('¿Eliminar este plan?')) deletePlan.mutate(plan.id); }}
-                  className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 hover:bg-red-50"
-                  title="Eliminar plan"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 hover:bg-red-50"
+                      title="Eliminar plan"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="rounded-[2rem]">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Eliminar este plan?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta acción no se puede deshacer. Asegúrate de que el plan no esté siendo usado por ningún cliente antes de eliminarlo.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={() => deletePlan.mutate(plan.id)}
+                        className="bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-600/20"
+                      >
+                        Eliminar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 
                 <h4 className="font-bold text-zinc-900 text-lg mb-3 pr-8">{plan.name}</h4>
                 <ul className="space-y-1.5">
