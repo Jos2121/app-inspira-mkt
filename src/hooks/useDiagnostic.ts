@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
+// --- Tipos ---
 export type AgencyPlan = {
   id: string;
   name: string;
@@ -9,26 +10,36 @@ export type AgencyPlan = {
   createdAt: string;
 };
 
-export type Prospect = {
-  name: string;
-  whatsapp: string;
+export type DiagnosticQuestion = {
+  id: string;
+  question: string;
+  createdAt: string;
+};
+
+export type DiagnosticResultItem = {
+  score: number;
+  observation: string;
+};
+
+export type DiagnosticRecord = {
+  id: string;
+  prospectName: string;
+  prospectWhatsapp: string;
   dateLimaISO: string;
+  results: Record<string, DiagnosticResultItem>;
+  reportText: string;
+  planId: string | null;
+  createdAt: string;
+  plan?: AgencyPlan;
 };
 
-export type DiagnosticResultType = {
-  recommendedPlan: AgencyPlan | null;
-  matchPercentage: number;
-  painPointsSolved: string[];
-  totalPainPoints: number;
-};
-
-// --- CRUD Planes de Agencia ---
+// --- Hooks de Planes de Agencia ---
 export function useAgencyPlans() {
   return useQuery<AgencyPlan[]>({
     queryKey: ['agency-plans'],
     queryFn: async () => {
       const res = await fetch('/api/diagnostic-plans');
-      if (!res.ok) throw new Error('Error al cargar planes de agencia');
+      if (!res.ok) throw new Error('Error al cargar planes');
       return res.json();
     }
   });
@@ -43,7 +54,7 @@ export function useCreateAgencyPlan() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Error al crear el plan');
+      if (!res.ok) throw new Error('Error al crear plan');
       return res.json();
     },
     onSuccess: () => {
@@ -59,53 +70,104 @@ export function useDeleteAgencyPlan() {
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/diagnostic-plans/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Error interno al eliminar el plan');
+      if (!res.ok) throw new Error('Error al eliminar');
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agency-plans'] });
       toast.success('Plan eliminado');
     },
-    onError: (error) => toast.error(error.message)
+    onError: () => toast.error('Error al eliminar plan')
   });
 }
 
-// --- Algoritmo de Diagnóstico ---
-export function calculateBestPlan(plans: AgencyPlan[], scores: Record<string, number>): DiagnosticResultType {
-  // 1. Identificar Puntos de Dolor (Calificación <= 4)
-  const painPoints = Object.entries(scores)
-    .filter(([_, score]) => score <= 4)
-    .map(([benefit]) => benefit);
-
-  if (painPoints.length === 0) {
-    return { recommendedPlan: null, matchPercentage: 0, painPointsSolved: [], totalPainPoints: 0 };
-  }
-
-  let bestPlan: AgencyPlan | null = null;
-  let maxPainPointsSolved: string[] = [];
-
-  // 2. Iterar planes para ver cuál resuelve más puntos de dolor
-  plans.forEach(plan => {
-    const solved = plan.benefits.filter(benefit => painPoints.includes(benefit));
-    
-    if (solved.length > maxPainPointsSolved.length) {
-      maxPainPointsSolved = solved;
-      bestPlan = plan;
+// --- Hooks de Preguntas del Checklist ---
+export function useDiagnosticQuestions() {
+  return useQuery<DiagnosticQuestion[]>({
+    queryKey: ['diagnostic-questions'],
+    queryFn: async () => {
+      const res = await fetch('/api/diagnostic-questions');
+      if (!res.ok) throw new Error('Error al cargar checklist');
+      return res.json();
     }
   });
+}
 
-  // Si ningún plan resuelve ningún punto de dolor
-  if (!bestPlan || maxPainPointsSolved.length === 0) {
-    return { recommendedPlan: null, matchPercentage: 0, painPointsSolved: [], totalPainPoints: painPoints.length };
-  }
+export function useCreateDiagnosticQuestion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (question: string) => {
+      const res = await fetch('/api/diagnostic-questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question }),
+      });
+      if (!res.ok) throw new Error('Error al añadir ítem');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['diagnostic-questions'] });
+      toast.success('Ítem añadido al checklist');
+    },
+    onError: () => toast.error('Error al añadir ítem')
+  });
+}
 
-  // 3. Calcular porcentaje de coincidencia (Cuántos de sus problemas resuelvo)
-  const matchPercentage = Math.round((maxPainPointsSolved.length / painPoints.length) * 100);
+export function useDeleteDiagnosticQuestion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/diagnostic-questions/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Error al eliminar');
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['diagnostic-questions'] }),
+    onError: () => toast.error('Error al eliminar ítem')
+  });
+}
 
-  return {
-    recommendedPlan: bestPlan,
-    matchPercentage,
-    painPointsSolved: maxPainPointsSolved,
-    totalPainPoints: painPoints.length,
-  };
+// --- Hooks del Historial y Generación AI ---
+export function useGenerateDiagnosticReport() {
+  return useMutation({
+    mutationFn: async (data: { prospectName: string; results: Record<string, DiagnosticResultItem> }) => {
+      const res = await fetch('/api/diagnostic/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Error en el análisis de IA');
+      return res.json();
+    }
+  });
+}
+
+export function useDiagnosticRecords() {
+  return useQuery<DiagnosticRecord[]>({
+    queryKey: ['diagnostic-records'],
+    queryFn: async () => {
+      const res = await fetch('/api/diagnostic-records');
+      if (!res.ok) throw new Error('Error al cargar historial');
+      return res.json();
+    }
+  });
+}
+
+export function useCreateDiagnosticRecord() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: Partial<DiagnosticRecord>) => {
+      const res = await fetch('/api/diagnostic-records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Error al guardar historial');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['diagnostic-records'] });
+      toast.success('Auditoría guardada exitosamente');
+    },
+    onError: () => toast.error('Error al guardar auditoría')
+  });
 }

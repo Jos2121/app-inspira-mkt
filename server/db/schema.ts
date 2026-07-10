@@ -79,7 +79,7 @@ export const complianceRecords = pgTable('compliance_records', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
-// NUEVO: Planes de la Agencia (Marketing/Servicios) para el Diagnosticador
+// Planes de la Agencia (Marketing/Servicios) para el Diagnosticador
 export const agencyPlans = pgTable('agency_plans', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
@@ -88,7 +88,26 @@ export const agencyPlans = pgTable('agency_plans', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
-// Relations
+// Checklist Base para la Auditoría
+export const diagnosticQuestions = pgTable('diagnostic_questions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  question: text('question').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+// Historial de Diagnósticos Generados
+export const diagnosticRecords = pgTable('diagnostic_records', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  prospectName: text('prospect_name').notNull(),
+  prospectWhatsapp: text('prospect_whatsapp').notNull(),
+  dateLimaISO: text('date_lima_iso').notNull(),
+  results: jsonb('results').notNull().$type<Record<string, { score: number, observation: string }>>(),
+  reportText: text('report_text').notNull(),
+  planId: uuid('plan_id').references(() => agencyPlans.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+// Relaciones
 export const goalsRelations = relations(goals, ({ one, many }) => ({
   client: one(clients, { fields: [goals.clientId], references: [clients.id] }),
   dailyLogs: many(dailyLogs),
@@ -106,4 +125,8 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
 export const complianceRecordsRelations = relations(complianceRecords, ({ one }) => ({
   client: one(clients, { fields: [complianceRecords.clientId], references: [clients.id] }),
   plan: one(plans, { fields: [complianceRecords.planId], references: [plans.id] }),
+}));
+
+export const diagnosticRecordsRelations = relations(diagnosticRecords, ({ one }) => ({
+  plan: one(agencyPlans, { fields: [diagnosticRecords.planId], references: [agencyPlans.id] }),
 }));
