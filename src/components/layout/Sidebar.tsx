@@ -80,9 +80,9 @@ export function Sidebar({
           </div>
         </div>
         
-        <nav className="flex-1 px-4 space-y-2 mt-4 md:mt-0 overflow-y-auto overflow-x-hidden">
+        <nav className="flex-1 px-4 space-y-2 mt-20 md:mt-0 pb-24 md:pb-4 overflow-y-auto overflow-x-hidden">
           {items.map((item, i) => {
-            const isActive = location.pathname === item.path || 
+            const isActive = location.pathname === item.path ||
                              (item.path !== '/' && location.pathname.startsWith(item.path));
             
             const navLink = (
@@ -129,7 +129,7 @@ export function Sidebar({
           })}
         </nav>
         
-        <div className="p-4 mt-auto">
+        <div className="p-4 mt-auto hidden md:block">
            <div className={cn(
              "bg-zinc-100/50 rounded-2xl flex items-center border border-zinc-200/50 transition-all duration-300 overflow-hidden",
              isCollapsed ? "p-2 justify-center" : "p-4 gap-3"
