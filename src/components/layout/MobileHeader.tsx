@@ -1,4 +1,4 @@
-import { Menu, X, Command } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from '../UserMenu';
 
@@ -19,7 +19,7 @@ export function MobileHeader({ mobileMenuOpen, setMobileMenuOpen }: MobileHeader
             e.currentTarget.src = 'https://placehold.co/100x100/2563eb/ffffff?text=L';
           }}
         />
-        <span>Gestión MVP</span>
+        <span>Inspira Mkt</span>
       </div>
       <div className="flex items-center gap-2">
         <UserMenu />
