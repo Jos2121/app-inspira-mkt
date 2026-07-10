@@ -34,7 +34,7 @@ export function DiagnosticPlans() {
 
   const updatePlan = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { name: string; price: number; benefits: string[] } }) => {
-      const res = await fetch(`/api/agency-plans/${id}`, {
+      const res = await fetch(`/api/diagnostic-plans/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -43,7 +43,7 @@ export function DiagnosticPlans() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agencyPlans'] });
+      queryClient.invalidateQueries({ queryKey: ['agency-plans'] });
       toast.success('Plan actualizado correctamente');
       cancelEdit();
     },

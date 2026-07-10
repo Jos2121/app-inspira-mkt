@@ -1,6 +1,8 @@
 import { defineHandler } from 'nitro';
 import { readBody, createError, getRouterParam } from 'nitro/h3';
-import { sql } from '../../../utils/db';
+import { db } from '../../../utils/db';
+import { agencyPlans } from '../../../db/schema';
+import { eq } from 'drizzle-orm';
 
 export default defineHandler(async (event) => {
   const id = getRouterParam(event, 'id');
@@ -13,20 +15,17 @@ export default defineHandler(async (event) => {
   }
 
   try {
-    const updated = await sql`
-      UPDATE agency_plans 
-      SET name = ${body.name}, 
-          price = ${body.price}, 
-          benefits = ${body.benefits}
-      WHERE id = ${id}
-      RETURNING *
-    `;
+    const [updated] = await db.update(agencyPlans).set({
+      name: body.name,
+      price: body.price.toString(),
+      benefits: body.benefits,
+    }).where(eq(agencyPlans.id, id)).returning();
 
-    if (updated.length === 0) {
+    if (!updated) {
       throw createError({ statusCode: 404, message: 'Plan no encontrado' });
     }
 
-    return updated[0];
+    return updated;
   } catch (error) {
     console.error('Error updating agency plan:', error);
     throw createError({ statusCode: 500, message: 'Error interno del servidor al actualizar el plan' });
