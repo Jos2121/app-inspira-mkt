@@ -116,6 +116,26 @@ export function useCreateDiagnosticQuestion() {
   });
 }
 
+export function useUpdateDiagnosticQuestion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, question }: { id: string; question: string }) => {
+      const res = await fetch(`/api/diagnostic-questions/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question }),
+      });
+      if (!res.ok) throw new Error('Error al actualizar ítem');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['diagnostic-questions'] });
+      toast.success('Ítem actualizado');
+    },
+    onError: () => toast.error('Error al actualizar ítem')
+  });
+}
+
 export function useDeleteDiagnosticQuestion() {
   const queryClient = useQueryClient();
   return useMutation({
