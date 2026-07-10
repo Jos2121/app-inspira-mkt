@@ -195,6 +195,22 @@ export function useCreateDiagnosticRecord() {
   });
 }
 
+export function useDeleteDiagnosticRecord() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/diagnostic-records/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Error al eliminar');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['diagnostic-records'] });
+      toast.success('Auditoría eliminada del historial');
+    },
+    onError: () => toast.error('Error al eliminar auditoría')
+  });
+}
+
 // --- Hook Búsqueda DNI ---
 export function useSearchDNI() {
   return useMutation({

@@ -1,13 +1,25 @@
-import { useDiagnosticRecords } from '@/hooks/useDiagnostic';
+import { useDiagnosticRecords, useDeleteDiagnosticRecord } from '@/hooks/useDiagnostic';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Download, FileText } from 'lucide-react';
+import { Download, FileText, Trash2 } from 'lucide-react';
 import { formatLocalDateString } from '@/lib/date-utils';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export function DiagnosticHistory() {
   const { data: records = [], isLoading } = useDiagnosticRecords();
+  const deleteRecord = useDeleteDiagnosticRecord();
 
   const handleDownloadPDF = (record: any) => {
     // Implementación rápida y estilizada usando window.print()
@@ -83,7 +95,7 @@ export function DiagnosticHistory() {
             <TableHead>Fecha</TableHead>
             <TableHead>Prospecto</TableHead>
             <TableHead>Plan Ofrecido</TableHead>
-            <TableHead className="text-right">Exportar</TableHead>
+            <TableHead className="text-right">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -114,14 +126,45 @@ export function DiagnosticHistory() {
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="border-zinc-200 hover:bg-zinc-100 rounded-xl text-zinc-700"
-                    onClick={() => handleDownloadPDF(record)}
-                  >
-                    <Download className="w-4 h-4 mr-2" /> PDF
-                  </Button>
+                  <div className="flex justify-end items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="border-zinc-200 hover:bg-zinc-100 rounded-xl text-zinc-700"
+                      onClick={() => handleDownloadPDF(record)}
+                    >
+                      <Download className="w-4 h-4 mr-2" /> PDF
+                    </Button>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-9 w-9 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl border border-transparent hover:border-red-100"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="rounded-[2rem] z-[100]">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Eliminar auditoría?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta acción no se puede deshacer. Se eliminará el registro de la auditoría de forma permanente.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => deleteRecord.mutate(record.id)}
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-600/20"
+                          >
+                            Eliminar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </TableCell>
               </TableRow>
             ))
