@@ -102,14 +102,17 @@ export function useCreateDiagnosticQuestion() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question }),
       });
-      if (!res.ok) throw new Error('Error al añadir ítem');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error al añadir ítem');
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['diagnostic-questions'] });
       toast.success('Ítem añadido al checklist');
     },
-    onError: () => toast.error('Error al añadir ítem')
+    onError: (error) => toast.error(error.message)
   });
 }
 
