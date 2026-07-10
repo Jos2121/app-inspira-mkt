@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Trash2, ListChecks, Plus, Edit2, Check, X } from 'lucide-react';
+import { Trash2, ListChecks, Plus, Edit2, Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useDiagnosticQuestions, useCreateDiagnosticQuestion, useDeleteDiagnosticQuestion, useUpdateDiagnosticQuestion } from '@/hooks/useDiagnostic';
 import {
   AlertDialog,
@@ -28,11 +28,33 @@ export function DiagnosticChecklistConfig() {
   const deleteQ = useDeleteDiagnosticQuestion();
   const updateQ = useUpdateDiagnosticQuestion();
 
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
+  // Ajustar la página si se eliminan elementos y la página actual queda vacía
+  useEffect(() => {
+    const maxPage = Math.ceil(questions.length / ITEMS_PER_PAGE) || 1;
+    if (currentPage > maxPage) {
+      setCurrentPage(maxPage);
+    }
+  }, [questions.length, currentPage]);
+
+  const totalPages = Math.ceil(questions.length / ITEMS_PER_PAGE);
+  const paginatedQuestions = questions.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newQuestion.trim()) return;
     createQ.mutate(newQuestion.trim(), {
-      onSuccess: () => setNewQuestion('')
+      onSuccess: () => {
+        setNewQuestion('');
+        // Al añadir, ir a la última página para ver el nuevo elemento
+        setCurrentPage(Math.ceil((questions.length + 1) / ITEMS_PER_PAGE));
+      }
     });
   };
 
@@ -85,82 +107,118 @@ export function DiagnosticChecklistConfig() {
             ) : questions.length === 0 ? (
               <p className="text-sm text-center text-zinc-500 py-6 border border-dashed rounded-xl">El checklist está vacío.</p>
             ) : (
-              questions.map((q) => (
-                <div key={q.id} className="flex items-center justify-between p-3 bg-white border border-zinc-200 rounded-xl shadow-sm group">
-                  {editingId === q.id ? (
-                    <div className="flex w-full gap-2 items-center">
-                      <Input
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onKeyDown={(e) => handleKeyDown(e, q.id)}
-                        className="h-9 text-sm"
-                        autoFocus
-                      />
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-8 w-8 shrink-0 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700" 
-                        onClick={() => handleSaveEdit(q.id)} 
-                        disabled={updateQ.isPending}
+              <>
+                {paginatedQuestions.map((q) => (
+                  <div key={q.id} className="flex items-center justify-between p-3 bg-white border border-zinc-200 rounded-xl shadow-sm group">
+                    {editingId === q.id ? (
+                      <div className="flex w-full gap-2 items-center">
+                        <Input
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onKeyDown={(e) => handleKeyDown(e, q.id)}
+                          className="h-9 text-sm"
+                          autoFocus
+                        />
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-8 w-8 shrink-0 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700" 
+                          onClick={() => handleSaveEdit(q.id)} 
+                          disabled={updateQ.isPending}
+                        >
+                           <Check className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-8 w-8 shrink-0 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700" 
+                          onClick={() => setEditingId(null)}
+                        >
+                           <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="font-medium text-zinc-800 text-sm flex-1 mr-4 leading-tight">{q.question}</span>
+                        
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-zinc-400 hover:text-blue-600 hover:bg-blue-50"
+                            onClick={() => startEdit(q)}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-zinc-400 hover:text-red-500 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="rounded-[2rem] z-[100]">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>¿Eliminar ítem del checklist?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta acción removerá la pregunta del checklist base para futuras auditorías.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => deleteQ.mutate(q.id)}
+                                  className="bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-600/20"
+                                >
+                                  Eliminar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+
+                {/* Controles de Paginación */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-4 mt-4 border-t border-zinc-100">
+                    <span className="text-xs text-zinc-500 font-medium">
+                      {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, questions.length)} de {questions.length}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 rounded-lg"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
                       >
-                         <Check className="w-4 h-4" />
+                        <ChevronLeft className="w-4 h-4" />
                       </Button>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-8 w-8 shrink-0 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700" 
-                        onClick={() => setEditingId(null)}
+                      <div className="text-xs font-medium text-zinc-700 w-12 text-center">
+                        {currentPage} / {totalPages}
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 rounded-lg"
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
                       >
-                         <X className="w-4 h-4" />
+                        <ChevronRight className="w-4 h-4" />
                       </Button>
                     </div>
-                  ) : (
-                    <>
-                      <span className="font-medium text-zinc-800 text-sm flex-1 mr-4 leading-tight">{q.question}</span>
-                      
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-zinc-400 hover:text-blue-600 hover:bg-blue-50"
-                          onClick={() => startEdit(q)}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-zinc-400 hover:text-red-500 hover:bg-red-50"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="rounded-[2rem] z-[100]">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>¿Eliminar ítem del checklist?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta acción removerá la pregunta del checklist base para futuras auditorías.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => deleteQ.mutate(q.id)}
-                                className="bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-600/20"
-                              >
-                                Eliminar
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
