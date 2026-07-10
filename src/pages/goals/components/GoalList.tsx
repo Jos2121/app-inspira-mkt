@@ -10,26 +10,36 @@ import { LogHistoryModal } from './LogHistoryModal';
 import { getCurrentDateLimaISO, formatLocalDateString } from '@/lib/date-utils';
 import { Input } from '@/components/ui/input';
 import { getDaysInMonth } from 'date-fns';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 // Helper para calcular el ritmo esperado hasta la fecha actual
 function calculatePacing(monthYear: string, targetPatients: number) {
-  const todayISO = getCurrentDateLimaISO(); // Ej: 'YYYY-MM-DD'
+  const todayISO = getCurrentDateLimaISO(); 
   const todayParts = todayISO.split('-');
   const todayDay = parseInt(todayParts[2], 10);
   const currentMonthStr = todayISO.substring(0, 7);
 
   const [goalYear, goalMonth] = monthYear.split('-');
-  // Usamos un Date local seguro (día 1) para contar cuántos días tiene el mes
   const goalDate = new Date(parseInt(goalYear, 10), parseInt(goalMonth, 10) - 1, 1);
   const totalDays = getDaysInMonth(goalDate);
 
   let elapsedDays = 0;
   if (monthYear === currentMonthStr) {
-    elapsedDays = todayDay; // Mes actual, contamos hasta hoy
+    elapsedDays = todayDay; 
   } else if (monthYear < currentMonthStr) {
-    elapsedDays = totalDays; // Mes pasado, ya transcurrieron todos los días
+    elapsedDays = totalDays; 
   } else {
-    elapsedDays = 0; // Mes futuro
+    elapsedDays = 0; 
   }
 
   const expectedPatients = Math.round((targetPatients / totalDays) * elapsedDays);
@@ -46,14 +56,11 @@ export function GoalList() {
   const [historyGoal, setHistoryGoal] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // APLICANDO MES ACTUAL POR DEFECTO COMO EN CUMPLIMIENTO
   const [monthFilter, setMonthFilter] = useState(getCurrentDateLimaISO().substring(0, 7));
   
-  // Paginación
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 6;
 
-  // Resetear a la página 1 cuando cambian los filtros
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, monthFilter]);
@@ -87,7 +94,6 @@ export function GoalList() {
     return matchesSearch && matchesMonth;
   });
 
-  // Cálculos de paginación
   const totalPages = Math.ceil(filteredGoals.length / ITEMS_PER_PAGE);
   const paginatedGoals = filteredGoals.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -147,7 +153,6 @@ export function GoalList() {
               const currentPatients = goal.dailyLogs?.reduce((acc: number, log: any) => acc + log.count, 0) || 0;
               const progressPercentage = Math.min((currentPatients / goal.targetPatients) * 100, 100);
               
-              // Lógica de Pacing (Ritmo)
               const pacing = calculatePacing(goal.monthYear, goal.targetPatients);
               const isOnTrack = currentPatients >= pacing.expectedPatients;
               
@@ -155,7 +160,6 @@ export function GoalList() {
               const earnedMoney = currentPatients * costVal;
               const projectedMoney = goal.targetPatients * costVal;
               
-              // Colores Dinámicos basados en si estamos atrasados o a tiempo
               const progressColor = progressPercentage >= 100 
                 ? "[&>div]:bg-emerald-500" 
                 : isOnTrack 
@@ -178,15 +182,36 @@ export function GoalList() {
                         {client?.name || 'Cargando cliente...'}
                       </h3>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 hover:bg-red-50 -mt-2 -mr-2"
-                      onClick={() => { if(confirm('¿Eliminar esta meta?')) deleteMutation.mutate(goal.id); }}
-                      disabled={deleteMutation.isPending}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 hover:bg-red-50 -mt-2 -mr-2 relative z-50"
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="rounded-[2rem]">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Eliminar meta?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta acción no se puede deshacer. Se eliminará la meta y todo su historial de registros diarios.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => deleteMutation.mutate(goal.id)}
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-600/20"
+                          >
+                            Eliminar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
 
                   <div className="space-y-6 relative z-10">
@@ -212,7 +237,6 @@ export function GoalList() {
                       <div className="relative">
                         <Progress value={progressPercentage} className={cn("h-2.5 bg-zinc-100", progressColor)} />
                         
-                        {/* Marcador del Indicador de Ritmo */}
                         {pacing.expectedPercentage > 0 && pacing.expectedPercentage < 100 && (
                            <div
                              className={cn(

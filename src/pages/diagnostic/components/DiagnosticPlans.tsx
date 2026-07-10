@@ -7,6 +7,17 @@ import { Trash2, Plus, GripVertical, Settings2 } from 'lucide-react';
 import { useAgencyPlans, useCreateAgencyPlan, useDeleteAgencyPlan } from '@/hooks/useDiagnostic';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export function DiagnosticPlans() {
   const [open, setOpen] = useState(false);
@@ -64,7 +75,6 @@ export function DiagnosticPlans() {
         </DialogHeader>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-          {/* Formulario */}
           <div className="bg-zinc-50/80 p-5 rounded-2xl border border-zinc-200/60">
             <h3 className="font-semibold text-zinc-900 mb-4 text-sm uppercase tracking-wide">Crear Plan</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -96,7 +106,6 @@ export function DiagnosticPlans() {
             </form>
           </div>
 
-          {/* Lista */}
           <div className="space-y-3">
             <h3 className="font-semibold text-zinc-900 mb-4 text-sm uppercase tracking-wide">Planes Activos ({plans.length})</h3>
             {isLoading ? (
@@ -107,9 +116,31 @@ export function DiagnosticPlans() {
               <div className="space-y-3">
                 {plans.map(p => (
                   <div key={p.id} className="bg-white border border-zinc-200 p-3 rounded-xl shadow-sm relative group">
-                    <Button variant="ghost" size="icon" onClick={() => { if(confirm('¿Eliminar plan?')) deletePlan.mutate(p.id); }} className="absolute top-2 right-2 h-7 w-7 text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 z-50">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="rounded-[2rem] z-[100]">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Eliminar plan?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            El plan será eliminado de forma permanente.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => deletePlan.mutate(p.id)}
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-600/20"
+                          >
+                            Eliminar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
                     <h4 className="font-bold text-zinc-900 pr-8 leading-tight">{p.name}</h4>
                     <p className="text-sm font-mono text-emerald-600 font-semibold mb-2">{formatCurrency(p.price)}</p>
                     <div className="flex flex-wrap gap-1">

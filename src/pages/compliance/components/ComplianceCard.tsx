@@ -7,6 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Trash2, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatLocalDateString } from '@/lib/date-utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface ComplianceCardProps {
   record: ComplianceRecord;
@@ -17,7 +28,6 @@ export function ComplianceCard({ record }: ComplianceCardProps) {
   const updateChecklist = useUpdateComplianceChecklist();
   const deleteRecord = useDeleteComplianceRecord();
 
-  // Sync state if props change externally
   useEffect(() => {
     setOptimisticChecklist(record.checklist);
   }, [record.checklist]);
@@ -25,8 +35,6 @@ export function ComplianceCard({ record }: ComplianceCardProps) {
   const handleToggle = (activity: string, checked: boolean) => {
     const newChecklist = { ...optimisticChecklist, [activity]: checked };
     setOptimisticChecklist(newChecklist);
-    
-    // Fire mutation
     updateChecklist.mutate({ id: record.id, checklist: newChecklist });
   };
 
@@ -36,7 +44,6 @@ export function ComplianceCard({ record }: ComplianceCardProps) {
   const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
 
   const isCompleted = progress === 100;
-  const colorScheme = isCompleted ? 'emerald' : 'blue';
 
   return (
     <div className={cn(
@@ -44,12 +51,10 @@ export function ComplianceCard({ record }: ComplianceCardProps) {
       isCompleted ? "border-emerald-200/60 shadow-emerald-500/5 bg-emerald-50/10" : "border-zinc-200/60 hover:shadow-xl hover:-translate-y-1"
     )}>
       
-      {/* Decorative Glow */}
       {isCompleted && (
         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/20 blur-3xl rounded-full -z-10 pointer-events-none transition-all duration-1000"></div>
       )}
 
-      {/* Header */}
       <div className="flex justify-between items-start mb-5 relative z-10">
         <div>
           <div className="flex items-center gap-2 mb-2">
@@ -68,17 +73,36 @@ export function ComplianceCard({ record }: ComplianceCardProps) {
           </h3>
         </div>
         
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => { if(confirm('¿Remover esta asignación?')) deleteRecord.mutate(record.id); }}
-          className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 hover:bg-red-50"
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 hover:bg-red-50 z-50"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="rounded-[2rem]">
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Remover asignación?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción no se puede deshacer. Se eliminará el seguimiento del plan para este mes.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => deleteRecord.mutate(record.id)}
+                className="bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-600/20"
+              >
+                Remover
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
-      {/* Progress Section */}
       <div className="space-y-2 mb-6 relative z-10">
         <div className="flex justify-between items-end">
           <span className="text-sm font-semibold text-zinc-600 flex items-center gap-1.5">
@@ -102,7 +126,6 @@ export function ComplianceCard({ record }: ComplianceCardProps) {
         </div>
       </div>
 
-      {/* Checklist */}
       <div className="space-y-1 relative z-10 bg-white/40 p-1.5 rounded-2xl border border-zinc-100/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
         {items.length === 0 ? (
           <p className="text-xs text-zinc-500 text-center py-4">No hay actividades definidas.</p>

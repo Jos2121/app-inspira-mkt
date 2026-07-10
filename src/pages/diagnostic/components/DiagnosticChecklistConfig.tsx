@@ -4,6 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Trash2, ListChecks, Plus } from 'lucide-react';
 import { useDiagnosticQuestions, useCreateDiagnosticQuestion, useDeleteDiagnosticQuestion } from '@/hooks/useDiagnostic';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export function DiagnosticChecklistConfig() {
   const [open, setOpen] = useState(false);
@@ -56,14 +67,35 @@ export function DiagnosticChecklistConfig() {
               questions.map((q) => (
                 <div key={q.id} className="flex items-center justify-between p-3 bg-white border border-zinc-200 rounded-xl shadow-sm group">
                   <span className="font-medium text-zinc-800 text-sm">{q.question}</span>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => deleteQ.mutate(q.id)} 
-                    className="h-8 w-8 text-zinc-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-zinc-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="rounded-[2rem] z-[100]">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>¿Eliminar ítem del checklist?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta acción removerá la pregunta del checklist base para futuras auditorías.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => deleteQ.mutate(q.id)}
+                          className="bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-600/20"
+                        >
+                          Eliminar
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               ))
             )}

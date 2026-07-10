@@ -12,6 +12,17 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { format as formatTz } from 'date-fns-tz';
 import { LIMA_TIMEZONE } from '@/lib/date-utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface TaskFormModalProps {
   task?: Task | null;
@@ -99,7 +110,7 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
   };
 
   const handleDelete = () => {
-    if (task && onDelete && window.confirm('¿Estás seguro que deseas eliminar esta tarea permanentemente?')) {
+    if (task && onDelete) {
       onDelete(task.id);
       onClose();
     }
@@ -108,7 +119,6 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
   const selectedPartner = partners.find(p => p.id === formData.partnerId);
   const selectedClient = clients.find(c => c.id === formData.clientId);
 
-  // Extracción robusta de la hora
   const formatDateTimeView = (isoString: string) => {
     if (!isoString) return '';
     try {
@@ -258,16 +268,36 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
           
           <div className="flex gap-3 pt-4 mt-2 border-t border-zinc-100">
             {isEditMode && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                {isDeleting ? 'Eliminando...' : 'Eliminar'}
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    disabled={isDeleting}
+                    className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {isDeleting ? 'Eliminando...' : 'Eliminar'}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="rounded-[2rem] z-[100]">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Eliminar tarea?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta acción no se puede deshacer. Se eliminará la tarea permanentemente.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleDelete}
+                      className="bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-600/20"
+                    >
+                      Eliminar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
             <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isPending}>
               {isPending ? 'Guardando...' : (isEditMode ? 'Guardar Estado' : 'Crear Tarea')}
