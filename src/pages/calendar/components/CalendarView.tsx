@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { format, addDays, subDays, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, User, Briefcase } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, User, Briefcase, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Task } from '@/hooks/useTasks';
@@ -9,6 +9,19 @@ import { cn } from '@/lib/utils';
 import { TaskFormModal } from './TaskFormModal';
 import { toZonedTime } from 'date-fns-tz';
 import { LIMA_TIMEZONE } from '@/lib/date-utils';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface CalendarViewProps {
   tasks: Task[];
@@ -162,9 +175,10 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
   return (
-    <div className="glass rounded-[2rem] border-zinc-200/60 shadow-sm overflow-hidden flex flex-col h-[750px]">
-      
-      {/* Cabecera y Filtros */}
+    <div className="space-y-6 flex flex-col">
+      <div className="glass rounded-[2rem] border-zinc-200/60 shadow-sm overflow-hidden flex flex-col h-[600px] shrink-0">
+        
+        {/* Cabecera y Filtros */}
       <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-b border-zinc-100 bg-white/50 gap-4">
         <h2 className="text-xl font-bold text-zinc-800 capitalize whitespace-nowrap">
           {format(currentDate, "EEEE, d 'de' MMMM", { locale: es })}
@@ -288,7 +302,101 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
         </div>
       </div>
 
-      <TaskFormModal 
+      {/* Tabla de Historial Diario */}
+      <div className="glass rounded-[2rem] border-zinc-200/60 shadow-sm overflow-hidden p-6 bg-white/50">
+        <h3 className="text-xl font-bold text-zinc-900 mb-4">Agenda del Día ({mappedTasks.length})</h3>
+        <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+          <Table>
+            <TableHeader className="bg-zinc-50/50">
+              <TableRow>
+                <TableHead>Hora</TableHead>
+                <TableHead>Tarea</TableHead>
+                <TableHead>Socio / Staff</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Acción</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {mappedTasks.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-zinc-500">
+                    No hay tareas programadas para este día.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                mappedTasks.map(task => {
+                  const startDisplay = task.startTime.replace(' ', 'T').split('T')[1]?.substring(0, 5) || '';
+                  const endDisplay = task.endTime.replace(' ', 'T').split('T')[1]?.substring(0, 5) || '';
+                  
+                  return (
+                    <TableRow key={task.id} className="hover:bg-zinc-50/50 cursor-pointer" onClick={(e) => handleTaskClick(e, task as any)}>
+                      <TableCell className="font-mono text-sm text-zinc-600 whitespace-nowrap">
+                        {startDisplay} - {endDisplay}
+                      </TableCell>
+                      <TableCell className="font-medium text-zinc-900">
+                        {task.title}
+                      </TableCell>
+                      <TableCell className="text-zinc-600">
+                        {task.partner?.name || '-'}
+                      </TableCell>
+                      <TableCell className="text-zinc-600">
+                        {task.client?.name || '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={cn(
+                          "font-medium border-transparent",
+                          task.status === 'Pendiente' ? "bg-amber-100 text-amber-800" :
+                          task.status === 'En Proceso' ? "bg-blue-100 text-blue-800" :
+                          "bg-emerald-100 text-emerald-800"
+                        )}>
+                          {task.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-red-400 hover:text-red-600 hover:bg-red-50"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="rounded-[2rem] z-[100]">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>¿Eliminar tarea?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta acción no se puede deshacer. Se eliminará la tarea permanentemente.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="rounded-xl" onClick={(e) => e.stopPropagation()}>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onTaskDelete(task.id);
+                                }}
+                                className="bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-600/20"
+                              >
+                                Eliminar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      <TaskFormModal
         task={selectedTask}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
