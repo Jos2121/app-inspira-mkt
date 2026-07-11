@@ -8,6 +8,8 @@ export type DashboardKpis = {
   todayTasksTotal: number;
   todayTasksCompleted: number;
   totalClients: number;
+  totalPartners: number;
+  totalDiagnostics: number;
 };
 
 export function useDashboardKpis() {

@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, Wallet, Users, CalendarCheck, Contact } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Users, CalendarCheck, Contact, UserSquare2, Activity } from 'lucide-react';
 import { useDashboardKpis } from '@/hooks/useDashboard';
 import { KpiCard } from './dashboard/components/KpiCard';
 import { formatCurrency } from '@/lib/utils';
@@ -10,10 +10,10 @@ export default function Dashboard() {
     <div className="space-y-8">
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 fill-both">
         <h2 className="text-3xl font-bold tracking-tight text-zinc-900">Dashboard</h2>
-        <p className="text-zinc-500 mt-2 font-medium">Resumen general de tu negocio en el mes actual.</p>
+        <p className="text-zinc-500 mt-2 font-medium">Resumen general de tu negocio en el mes actual y métricas históricas.</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           title="Ingresos (Mes)"
           value={kpis ? formatCurrency(kpis.incomes) : formatCurrency(0)}
@@ -46,6 +46,7 @@ export default function Dashboard() {
           delay="400ms"
           colorVariant="indigo"
         />
+        
         <KpiCard
           title="Total Clientes"
           value={kpis?.totalClients ?? '0'}
@@ -56,11 +57,29 @@ export default function Dashboard() {
           colorVariant="amber"
         />
         <KpiCard
+          title="Total Socios / Equipo"
+          value={kpis?.totalPartners ?? '0'}
+          icon={UserSquare2}
+          isLoading={isLoading}
+          delay="600ms"
+          subtitle="Staff Registrado"
+          colorVariant="blue"
+        />
+        <KpiCard
+          title="Diagnósticos Generados"
+          value={kpis?.totalDiagnostics ?? '0'}
+          icon={Activity}
+          isLoading={isLoading}
+          delay="700ms"
+          subtitle="Auditorías Realizadas"
+          colorVariant="emerald"
+        />
+        <KpiCard
           title="Tareas para Hoy"
           value={kpis ? `${kpis.todayTasksCompleted} / ${kpis.todayTasksTotal}` : '0 / 0'}
           icon={CalendarCheck}
           isLoading={isLoading}
-          delay="600ms"
+          delay="800ms"
           subtitle="Agenda Diaria"
           colorVariant="violet"
           progressValue={kpis?.todayTasksTotal ? (kpis.todayTasksCompleted / kpis.todayTasksTotal) * 100 : 0}

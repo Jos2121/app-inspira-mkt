@@ -1,7 +1,7 @@
 import { defineHandler } from 'nitro';
 import { createError } from 'nitro/h3';
 import { db } from '../../../utils/db';
-import { transactions, dailyLogs, tasks, clients } from '../../../db/schema';
+import { transactions, dailyLogs, tasks, clients, partners, diagnosticRecords } from '../../../db/schema';
 import { sql as drizzleSql, eq, and, gte, lt } from 'drizzle-orm';
 
 export default defineHandler(async (event) => {
@@ -70,9 +70,15 @@ export default defineHandler(async (event) => {
     const todayTasksTotal = todayTasks.length;
     const todayTasksCompleted = todayTasks.filter(t => t.status === 'Completada').length;
 
-    // 3. Extraemos el total de clientes registrados
+    // 3. Extraemos los totales históricos (Clientes, Socios, Diagnósticos)
     const allClients = await db.select({ id: clients.id }).from(clients);
     const totalClientsCount = allClients.length;
+
+    const allPartners = await db.select({ id: partners.id }).from(partners);
+    const totalPartnersCount = allPartners.length;
+
+    const allDiagnostics = await db.select({ id: diagnosticRecords.id }).from(diagnosticRecords);
+    const totalDiagnosticsCount = allDiagnostics.length;
 
     return {
       incomes,
@@ -82,6 +88,8 @@ export default defineHandler(async (event) => {
       todayTasksTotal,
       todayTasksCompleted,
       totalClients: totalClientsCount,
+      totalPartners: totalPartnersCount,
+      totalDiagnostics: totalDiagnosticsCount,
     };
   } catch (error: any) {
     console.error("Error en API de Dashboard:", error);
