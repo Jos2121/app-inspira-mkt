@@ -1,7 +1,7 @@
 import { defineHandler } from 'nitro';
 import { db } from '../../../utils/db';
-import { transactions, dailyLogs } from '../../../db/schema';
-import { sql as drizzleSql, eq, and, gte, lt } from 'drizzle-orm';
+import { transactions, dailyLogs, tasks } from '../../../db/schema';
+import { sql as drizzleSql, eq, and, gte, lt, like } from 'drizzle-orm';
 
 export default defineHandler(async (event) => {
   const userId = event.context.userId;
@@ -21,6 +21,7 @@ export default defineHandler(async (event) => {
   
   const year = getPart('year');
   const month = getPart('month'); // 1-12
+  const day = getPart('day');
 
   const startMonthStr = `${year}-${month.toString().padStart(2, '0')}-01`;
   const nextMonthYear = month === 12 ? year + 1 : year;
@@ -58,10 +59,23 @@ export default defineHandler(async (event) => {
   const balance = incomes - expenses;
   const totalPatients = Number(patientsResult.total);
 
+  // Filtro de tareas para HOY
+  const todayStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+  
+  const [tasksResult] = await db
+    .select({
+      total: drizzleSql<number>`count(*)::int`,
+      completed: drizzleSql<number>`coalesce(sum(case when ${tasks.status} = 'Completada' then 1 else 0 end), 0)::int`
+    })
+    .from(tasks)
+    .where(like(tasks.startTime, `${todayStr}%`));
+
   return {
     incomes,
     expenses,
     balance,
     totalPatients,
+    todayTasksTotal: Number(tasksResult?.total || 0),
+    todayTasksCompleted: Number(tasksResult?.completed || 0),
   };
 });

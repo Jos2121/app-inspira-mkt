@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { ArrowUpRight } from 'lucide-react';
 import React from 'react';
+import { Progress } from '@/components/ui/progress';
 
 interface KpiCardProps {
   title: string;
@@ -11,16 +12,20 @@ interface KpiCardProps {
   delay?: string;
   subtitle?: string;
   colorVariant?: 'blue' | 'emerald' | 'violet' | 'amber' | 'rose' | 'indigo';
+  progressValue?: number;
+  progressText?: string;
 }
 
-export function KpiCard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  isLoading, 
-  delay, 
-  subtitle = "Mes Actual", 
-  colorVariant = 'blue' 
+export function KpiCard({
+  title,
+  value,
+  icon: Icon,
+  isLoading,
+  delay,
+  subtitle = "Mes Actual",
+  colorVariant = 'blue',
+  progressValue,
+  progressText
 }: KpiCardProps) {
   
   const colorStyles = {
@@ -31,7 +36,8 @@ export function KpiCard({
       accent: "bg-blue-600",
       glow: "shadow-blue-600/30",
       text: "text-blue-700",
-      blob: "bg-blue-400/20"
+      blob: "bg-blue-400/20",
+      progress: "[&>div]:bg-blue-600"
     },
     emerald: {
       bg: "bg-emerald-50/30",
@@ -40,7 +46,8 @@ export function KpiCard({
       accent: "bg-emerald-600",
       glow: "shadow-emerald-600/30",
       text: "text-emerald-700",
-      blob: "bg-emerald-400/20"
+      blob: "bg-emerald-400/20",
+      progress: "[&>div]:bg-emerald-600"
     },
     violet: {
       bg: "bg-violet-50/30",
@@ -49,7 +56,8 @@ export function KpiCard({
       accent: "bg-violet-600",
       glow: "shadow-violet-600/30",
       text: "text-violet-700",
-      blob: "bg-violet-400/20"
+      blob: "bg-violet-400/20",
+      progress: "[&>div]:bg-violet-600"
     },
     amber: {
       bg: "bg-amber-50/30",
@@ -58,7 +66,8 @@ export function KpiCard({
       accent: "bg-amber-600",
       glow: "shadow-amber-600/30",
       text: "text-amber-700",
-      blob: "bg-amber-400/20"
+      blob: "bg-amber-400/20",
+      progress: "[&>div]:bg-amber-600"
     },
     rose: {
       bg: "bg-rose-50/30",
@@ -67,7 +76,8 @@ export function KpiCard({
       accent: "bg-rose-600",
       glow: "shadow-rose-600/30",
       text: "text-rose-700",
-      blob: "bg-rose-400/20"
+      blob: "bg-rose-400/20",
+      progress: "[&>div]:bg-rose-600"
     },
     indigo: {
       bg: "bg-indigo-50/30",
@@ -76,7 +86,8 @@ export function KpiCard({
       accent: "bg-indigo-600",
       glow: "shadow-indigo-600/30",
       text: "text-indigo-700",
-      blob: "bg-indigo-400/20"
+      blob: "bg-indigo-400/20",
+      progress: "[&>div]:bg-indigo-600"
     }
   };
 
@@ -127,6 +138,19 @@ export function KpiCard({
             </div>
           )}
         </div>
+        
+        {progressValue !== undefined && (
+          <div className="mt-5 space-y-2">
+            <div className="flex justify-between text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+              <span>{progressText}</span>
+              <span className={style.text}>{Math.round(progressValue)}%</span>
+            </div>
+            <Progress
+              value={progressValue}
+              className={cn("h-1.5 bg-zinc-200/50", style.progress)}
+            />
+          </div>
+        )}
       </CardContent>
       
       <div className={cn("absolute bottom-0 left-0 h-1.5 w-0 group-hover:w-full transition-all duration-700 ease-out", style.accent)}></div>

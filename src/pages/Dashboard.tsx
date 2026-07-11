@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, Wallet, Users } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Users, CalendarCheck } from 'lucide-react';
 import { useDashboardKpis } from '@/hooks/useDashboard';
 import { KpiCard } from './dashboard/components/KpiCard';
 import { formatCurrency } from '@/lib/utils';
@@ -13,7 +13,7 @@ export default function Dashboard() {
         <p className="text-zinc-500 mt-2 font-medium">Resumen general de tu negocio en el mes actual.</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <KpiCard
           title="Ingresos (Mes)"
           value={kpis?.incomes ? formatCurrency(kpis.incomes) : formatCurrency(0)}
@@ -45,6 +45,17 @@ export default function Dashboard() {
           isLoading={isLoading}
           delay="400ms"
           colorVariant="indigo"
+        />
+        <KpiCard
+          title="Tareas para Hoy"
+          value={kpis ? `${kpis.todayTasksCompleted} / ${kpis.todayTasksTotal}` : '0 / 0'}
+          icon={CalendarCheck}
+          isLoading={isLoading}
+          delay="500ms"
+          subtitle="Agenda Diaria"
+          colorVariant="violet"
+          progressValue={kpis?.todayTasksTotal ? (kpis.todayTasksCompleted / kpis.todayTasksTotal) * 100 : 0}
+          progressText="Cumplimiento"
         />
       </div>
     </div>
