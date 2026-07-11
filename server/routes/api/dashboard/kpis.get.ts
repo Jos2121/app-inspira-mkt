@@ -1,16 +1,16 @@
 import { defineHandler } from 'nitro';
+import { createError } from 'nitro/h3';
 import { db } from '../../../utils/db';
 import { transactions, dailyLogs, tasks, clients, partners, diagnosticRecords } from '../../../db/schema';
-import { sql as drizzleSql, eq, and, gte, lt, like } from 'drizzle-orm';
+import { eq, and, gte, lt, like, sum, count } from 'drizzle-orm';
 
 export default defineHandler(async (event) => {
   const userId = event.context.userId;
   if (!userId) {
-    return new Response('Unauthorized', { status: 401 });
+    throw createError({ statusCode: 401, message: 'Unauthorized' });
   }
 
   try {
-    // Usar Intl.DateTimeFormat para extraer de forma segura el año y mes en la hora de Lima
     const now = new Date();
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: 'America/Lima',
@@ -21,7 +21,7 @@ export default defineHandler(async (event) => {
     const getPart = (type: string) => parseInt(parts.find(p => p.type === type)!.value, 10);
     
     const year = getPart('year');
-    const month = getPart('month'); // 1-12
+    const month = getPart('month');
     const day = getPart('day');
 
     const startMonthStr = `${year}-${month.toString().padStart(2, '0')}-01`;
@@ -30,7 +30,6 @@ export default defineHandler(async (event) => {
     const nextMonth = month === 12 ? 1 : month + 1;
     const nextMonthStr = `${nextMonthYear}-${nextMonth.toString().padStart(2, '0')}-01`;
 
-    // Condición de filtro por mes actual (String ISO comparison seguro para SQLite/PG sin zonas complejas)
     const monthConditionTx = and(
       gte(transactions.date, startMonthStr),
       lt(transactions.date, nextMonthStr)
@@ -41,38 +40,39 @@ export default defineHandler(async (event) => {
       lt(dailyLogs.date, nextMonthStr)
     );
 
+    // Sumas
     const [incomeResult] = await db
-      .select({ total: drizzleSql<number>`coalesce(sum(${transactions.amount}), 0)` })
+      .select({ total: sum(transactions.amount) })
       .from(transactions)
       .where(and(monthConditionTx, eq(transactions.type, 'Ingreso')));
 
     const [expenseResult] = await db
-      .select({ total: drizzleSql<number>`coalesce(sum(${transactions.amount}), 0)` })
+      .select({ total: sum(transactions.amount) })
       .from(transactions)
       .where(and(monthConditionTx, eq(transactions.type, 'Gasto')));
 
     const [patientsResult] = await db
-      .select({ total: drizzleSql<number>`coalesce(sum(${dailyLogs.count}), 0)` })
+      .select({ total: sum(dailyLogs.count) })
       .from(dailyLogs)
       .where(monthConditionLogs);
 
-    // Nuevas métricas
+    // Conteos
     const [tasksResult] = await db
-      .select({ count: drizzleSql<number>`count(*)` })
+      .select({ value: count() })
       .from(tasks)
       .where(like(tasks.startTime, `${todayStr}%`));
 
     const [clientsResult] = await db
-      .select({ count: drizzleSql<number>`count(*)` })
+      .select({ value: count() })
       .from(clients);
 
     const [partnersResult] = await db
-      .select({ count: drizzleSql<number>`count(*)` })
+      .select({ value: count() })
       .from(partners)
       .where(eq(partners.status, 'Activo'));
 
     const [diagnosticsResult] = await db
-      .select({ count: drizzleSql<number>`count(*)` })
+      .select({ value: count() })
       .from(diagnosticRecords);
 
     const incomes = Number(incomeResult?.total || 0);
@@ -84,13 +84,24 @@ export default defineHandler(async (event) => {
       expenses,
       balance,
       totalPatients: Number(patientsResult?.total || 0),
-      todayTasks: Number(tasksResult?.count || 0),
-      totalClients: Number(clientsResult?.count || 0),
-      activePartners: Number(partnersResult?.count || 0),
-      totalDiagnostics: Number(diagnosticsResult?.count || 0),
+      todayTasks: Number(tasksResult?.value || 0),
+      totalClients: Number(clientsResult?.value || 0),
+      activePartners: Number(partnersResult?.value || 0),
+      totalDiagnostics: Number(diagnosticsResult?.value || 0),
     };
-  } catch (error) {
-    console.error("Error cargando KPIs del Dashboard:", error);
-    throw error; // Lanzamos el error para que el cliente lo vea y podamos depurar
+  } catch (error: any) {
+    console.error("Error en KPIs:", error);
+    // Devuelve ceros si algo falla para no romper la pantalla, además del error
+    return {
+      incomes: 0,
+      expenses: 0,
+      balance: 0,
+      totalPatients: 0,
+      todayTasks: 0,
+      totalClients: 0,
+      activePartners: 0,
+      totalDiagnostics: 0,
+      error: error.message
+    };
   }
 });

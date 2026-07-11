@@ -17,7 +17,14 @@ export function useDashboardKpis() {
     queryFn: async () => {
       const res = await fetch('/api/dashboard/kpis');
       if (!res.ok) throw new Error('Error al cargar KPIs');
-      return res.json();
+      const data = await res.json();
+      
+      // Si el backend capturó un error interno y devolvió un mensaje
+      if (data.error) {
+        console.error("Error interno en KPIs:", data.error);
+      }
+      
+      return data;
     }
   });
 }
