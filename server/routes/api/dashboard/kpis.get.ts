@@ -1,89 +1,85 @@
 import { defineHandler } from 'nitro';
+import { createError } from 'nitro/h3';
 import { db } from '../../../utils/db';
 import { transactions, dailyLogs, tasks } from '../../../db/schema';
-import { sql as drizzleSql, eq, and, gte, lt, like } from 'drizzle-orm';
+import { sql as drizzleSql, eq, and, gte, lt } from 'drizzle-orm';
 
 export default defineHandler(async (event) => {
-  const userId = event.context.userId;
-  if (!userId) {
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  // Usar Intl.DateTimeFormat para extraer de forma segura el año y mes en la hora de Lima
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Lima',
-    year: 'numeric', month: 'numeric', day: 'numeric',
-  });
-  
-  const parts = formatter.formatToParts(now);
-  const getPart = (type: string) => parseInt(parts.find(p => p.type === type)!.value, 10);
-  
-  const year = getPart('year');
-  const month = getPart('month'); // 1-12
-  const day = getPart('day');
-
-  const startMonthStr = `${year}-${month.toString().padStart(2, '0')}-01`;
-  const nextMonthYear = month === 12 ? year + 1 : year;
-  const nextMonth = month === 12 ? 1 : month + 1;
-  const nextMonthStr = `${nextMonthYear}-${nextMonth.toString().padStart(2, '0')}-01`;
-
-  const monthConditionTx = and(
-    gte(transactions.date, startMonthStr),
-    lt(transactions.date, nextMonthStr)
-  );
-
-  const monthConditionLogs = and(
-    gte(dailyLogs.date, startMonthStr),
-    lt(dailyLogs.date, nextMonthStr)
-  );
-
-  // Obtenemos los datos puros y hacemos los cálculos en memoria
-  // Esto elimina CUALQUIER posibilidad de error por sintaxis SQL o casteo de tipos en Neon/Postgres
-  
-  const monthTransactions = await db
-    .select({ amount: transactions.amount, type: transactions.type })
-    .from(transactions)
-    .where(monthConditionTx);
-    
-  let incomes = 0;
-  let expenses = 0;
-  
-  monthTransactions.forEach(tx => {
-    const amount = Number(tx.amount);
-    if (tx.type === 'Ingreso') {
-      incomes += amount;
-    } else if (tx.type === 'Gasto') {
-      expenses += amount;
+  try {
+    const userId = event.context.userId;
+    if (!userId) {
+      throw createError({ statusCode: 401, message: 'Unauthorized' });
     }
-  });
 
-  const balance = incomes - expenses;
+    // Usar Intl.DateTimeFormat para extraer de forma segura el año y mes en la hora de Lima
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Lima',
+      year: 'numeric', month: 'numeric', day: 'numeric',
+    });
+    
+    const parts = formatter.formatToParts(now);
+    const getPart = (type: string) => parseInt(parts.find(p => p.type === type)!.value, 10);
+    
+    const year = getPart('year');
+    const month = getPart('month'); // 1-12
+    const day = getPart('day');
 
-  const monthLogs = await db
-    .select({ count: dailyLogs.count })
-    .from(dailyLogs)
-    .where(monthConditionLogs);
+    const startMonthStr = `${year}-${month.toString().padStart(2, '0')}-01`;
+    const nextMonthYear = month === 12 ? year + 1 : year;
+    const nextMonth = month === 12 ? 1 : month + 1;
+    const nextMonthStr = `${nextMonthYear}-${nextMonth.toString().padStart(2, '0')}-01`;
 
-  const totalPatients = monthLogs.reduce((acc, log) => acc + Number(log.count), 0);
+    const monthConditionTx = and(
+      gte(transactions.date, startMonthStr),
+      lt(transactions.date, nextMonthStr)
+    );
 
-  // Filtro de tareas para HOY
-  const todayStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-  
-  const todayTasks = await db
-    .select({ status: tasks.status })
-    .from(tasks)
-    .where(like(tasks.startTime, `${todayStr}%`));
+    const monthConditionLogs = and(
+      gte(dailyLogs.date, startMonthStr),
+      lt(dailyLogs.date, nextMonthStr)
+    );
 
-  const todayTasksTotal = todayTasks.length;
-  const todayTasksCompleted = todayTasks.filter(t => t.status === 'Completada').length;
+    // 1. Revertimos a las agregaciones SQL originales que funcionaban perfectamente
+    const [incomeResult] = await db
+      .select({ total: drizzleSql<number>`coalesce(sum(${transactions.amount}), 0)` })
+      .from(transactions)
+      .where(and(monthConditionTx, eq(transactions.type, 'Ingreso')));
 
-  return {
-    incomes,
-    expenses,
-    balance,
-    totalPatients,
-    todayTasksTotal,
-    todayTasksCompleted,
-  };
+    const [expenseResult] = await db
+      .select({ total: drizzleSql<number>`coalesce(sum(${transactions.amount}), 0)` })
+      .from(transactions)
+      .where(and(monthConditionTx, eq(transactions.type, 'Gasto')));
+
+    const [patientsResult] = await db
+      .select({ total: drizzleSql<number>`coalesce(sum(${dailyLogs.count}), 0)` })
+      .from(dailyLogs)
+      .where(monthConditionLogs);
+
+    const incomes = Number(incomeResult?.total || 0);
+    const expenses = Number(expenseResult?.total || 0);
+    const balance = incomes - expenses;
+    const totalPatients = Number(patientsResult?.total || 0);
+
+    // 2. Extraemos las tareas del día sin usar sentencias complejas de base de datos
+    const todayStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    
+    const allTasks = await db.select({ status: tasks.status, startTime: tasks.startTime }).from(tasks);
+    const todayTasks = allTasks.filter(t => t.startTime.startsWith(todayStr));
+    
+    const todayTasksTotal = todayTasks.length;
+    const todayTasksCompleted = todayTasks.filter(t => t.status === 'Completada').length;
+
+    return {
+      incomes,
+      expenses,
+      balance,
+      totalPatients,
+      todayTasksTotal,
+      todayTasksCompleted,
+    };
+  } catch (error: any) {
+    console.error("Error en API de Dashboard:", error);
+    throw createError({ statusCode: 500, message: error.message || "Error interno al calcular KPIs" });
+  }
 });
