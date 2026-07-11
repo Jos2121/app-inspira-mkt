@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 export type Client = {
   id: string;
   name: string;
-  email: string | null;
   phone: string | null;
   createdAt: string;
 };

@@ -23,22 +23,16 @@ export default defineHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
   }
 
-  const role = session.user.role;
-
-  // 1. Block any unknown/unauthorized users from accessing ANY API
-  if (role === 'Guest' || !role) {
-    throw createError({ statusCode: 403, statusMessage: 'Forbidden: Account pending admin approval' });
-  }
-
-  // 2. Enforce Roles for critical operations
+  const role = session.user.role || 'EMPLEADO';
   const method = event.method;
+
   if (method === 'DELETE') {
-    // Only Admin can perform DELETE operations
-    if (role !== 'Admin') {
-      throw createError({ statusCode: 403, statusMessage: `Forbidden: Role '${role}' cannot perform DELETE operations` });
+    if (role !== 'SUPERADMIN' && role !== 'ADMIN') {
+      throw createError({ statusCode: 403, statusMessage: `Acceso denegado: El rol '${role}' no tiene permisos para eliminar registros` });
     }
   }
   
   event.context.userId = session.user.id;
   event.context.userRole = role;
+  event.context.userWhatsapp = session.user.whatsapp;
 });

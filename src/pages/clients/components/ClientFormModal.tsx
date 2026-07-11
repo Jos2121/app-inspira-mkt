@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 import React, { useState } from 'react';
 
 interface ClientFormModalProps {
-  onSubmit: (data: { name: string; email: string; phone: string }) => void;
+  onSubmit: (data: { name: string; phone: string }) => void;
   isPending: boolean;
 }
 
@@ -18,7 +18,6 @@ export function ClientFormModal({ onSubmit, isPending }: ClientFormModalProps) {
     const formData = new FormData(e.currentTarget);
     onSubmit({
       name: formData.get('name') as string,
-      email: formData.get('email') as string,
       phone: formData.get('phone') as string,
     });
     setOpen(false);
@@ -37,16 +36,12 @@ export function ClientFormModal({ onSubmit, isPending }: ClientFormModalProps) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nombre Completo *</Label>
+            <Label htmlFor="name">Nombre Completo o Empresa *</Label>
             <Input id="name" name="name" required className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">Teléfono</Label>
-            <Input id="phone" name="phone" className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" />
+            <Label htmlFor="phone">WhatsApp / Teléfono *</Label>
+            <Input id="phone" name="phone" required className="font-mono focus-visible:ring-blue-600/20 focus-visible:border-blue-600" />
           </div>
           <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isPending}>
             {isPending ? 'Guardando...' : 'Guardar Cliente'}

@@ -12,7 +12,6 @@ export default defineHandler(async (event) => {
 
   const [newClient] = await db.insert(clients).values({
     name: body.name,
-    email: body.email,
     phone: body.phone,
   }).returning();
 

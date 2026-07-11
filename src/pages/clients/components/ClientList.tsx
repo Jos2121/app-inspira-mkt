@@ -28,7 +28,6 @@ export function ClientList({ clients, isLoading, isAdmin, onDelete, onEdit }: Cl
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
-  // Resetear la página al filtrar/buscar (cambia la longitud/contenido del array)
   useEffect(() => {
     setCurrentPage(1);
   }, [clients]);
@@ -53,21 +52,19 @@ export function ClientList({ clients, isLoading, isAdmin, onDelete, onEdit }: Cl
           <TableHeader>
             <TableRow className="bg-zinc-50/50 hover:bg-zinc-50/50">
               <TableHead>Nombre</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Teléfono</TableHead>
+              <TableHead>WhatsApp / Teléfono</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={4} className="text-center py-8 text-zinc-500">Cargando clientes...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={3} className="text-center py-8 text-zinc-500">Cargando clientes...</TableCell></TableRow>
             ) : clients.length === 0 ? (
-              <TableRow><TableCell colSpan={4} className="text-center py-8 text-zinc-500">No se encontraron clientes</TableCell></TableRow>
+              <TableRow><TableCell colSpan={3} className="text-center py-8 text-zinc-500">No se encontraron clientes</TableCell></TableRow>
             ) : (
               paginatedClients.map((client) => (
                 <TableRow key={client.id} className="hover:bg-zinc-50/50 transition-colors">
                   <TableCell className="font-medium text-zinc-900">{client.name}</TableCell>
-                  <TableCell className="text-zinc-600">{client.email || '-'}</TableCell>
                   <TableCell className="text-zinc-600 font-mono text-sm">{client.phone || '-'}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
@@ -100,7 +97,6 @@ export function ClientList({ clients, isLoading, isAdmin, onDelete, onEdit }: Cl
         </Table>
       </div>
 
-      {/* Paginación */}
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/50 p-4 rounded-2xl border border-zinc-200/60 shadow-sm">
           <span className="text-sm text-zinc-500 font-medium">

@@ -1,18 +1,19 @@
-import { pgTable, text, timestamp, numeric, uuid, integer, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, numeric, uuid, integer, jsonb, pgEnum } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+
+export const roleEnum = pgEnum('role_enum', ['SUPERADMIN', 'ADMIN', 'EMPLEADO']);
 
 export const clients = pgTable('clients', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
-  email: text('email'),
   phone: text('phone'),
   address: text('address'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
 export const appRoles = pgTable('app_roles', {
-  email: text('email').primaryKey(),
-  role: text('role').notNull(),
+  whatsapp: text('whatsapp').primaryKey(),
+  role: roleEnum('role').notNull().default('EMPLEADO'),
 });
 
 export const partners = pgTable('partners', {
@@ -79,7 +80,6 @@ export const complianceRecords = pgTable('compliance_records', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
-// Planes de la Agencia (Marketing/Servicios) para el Diagnosticador
 export const agencyPlans = pgTable('agency_plans', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
@@ -88,14 +88,12 @@ export const agencyPlans = pgTable('agency_plans', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
-// Checklist Base para la Auditoría
 export const diagnosticQuestions = pgTable('diagnostic_questions', {
   id: uuid('id').primaryKey().defaultRandom(),
   question: text('question').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
-// Historial de Diagnósticos Generados
 export const diagnosticRecords = pgTable('diagnostic_records', {
   id: uuid('id').primaryKey().defaultRandom(),
   prospectName: text('prospect_name').notNull(),
@@ -107,7 +105,6 @@ export const diagnosticRecords = pgTable('diagnostic_records', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
-// Relaciones
 export const goalsRelations = relations(goals, ({ one, many }) => ({
   client: one(clients, { fields: [goals.clientId], references: [clients.id] }),
   dailyLogs: many(dailyLogs),

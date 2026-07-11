@@ -16,7 +16,6 @@ export default defineHandler(async (event) => {
 
   const [updatedClient] = await db.update(clients).set({
     name: body.name,
-    email: body.email,
     phone: body.phone,
   }).where(eq(clients.id, id)).returning();
 

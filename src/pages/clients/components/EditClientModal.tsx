@@ -9,26 +9,24 @@ interface EditClientModalProps {
   client: Client;
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { name: string; email: string; phone: string }) => void;
+  onSubmit: (data: { name: string; phone: string }) => void;
   isPending: boolean;
 }
 
 export function EditClientModal({ client, isOpen, onClose, onSubmit, isPending }: EditClientModalProps) {
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
 
   useEffect(() => {
     if (client) {
       setName(client.name);
-      setEmail(client.email || '');
       setPhone(client.phone || '');
     }
   }, [client]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit({ name, email, phone });
+    onSubmit({ name, phone });
   };
 
   return (
@@ -39,7 +37,7 @@ export function EditClientModal({ client, isOpen, onClose, onSubmit, isPending }
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="edit-name">Nombre Completo *</Label>
+            <Label htmlFor="edit-name">Nombre Completo o Empresa *</Label>
             <Input 
               id="edit-name" 
               value={name}
@@ -49,22 +47,13 @@ export function EditClientModal({ client, isOpen, onClose, onSubmit, isPending }
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit-email">Email</Label>
-            <Input 
-              id="edit-email" 
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-phone">Teléfono</Label>
+            <Label htmlFor="edit-phone">WhatsApp / Teléfono *</Label>
             <Input 
               id="edit-phone" 
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
+              required
+              className="font-mono focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
             />
           </div>
           <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isPending}>

@@ -11,7 +11,14 @@ export const authClient = createAuthClient(baseURL, {
 
 type SessionState = {
   data: {
-    user: { id: string; name: string; email: string; emailVerified: boolean; role?: string };
+    user: { 
+      id: string; 
+      name: string; 
+      email: string; 
+      emailVerified: boolean; 
+      role?: string;
+      whatsapp?: string; 
+    };
   } | null;
   isPending: boolean;
 };
