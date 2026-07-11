@@ -28,7 +28,6 @@ export default defineHandler(async (event) => {
   const nextMonth = month === 12 ? 1 : month + 1;
   const nextMonthStr = `${nextMonthYear}-${nextMonth.toString().padStart(2, '0')}-01`;
 
-  // Condición de filtro por mes actual (String ISO comparison seguro para SQLite/PG sin zonas complejas)
   const monthConditionTx = and(
     gte(transactions.date, startMonthStr),
     lt(transactions.date, nextMonthStr)
@@ -39,30 +38,38 @@ export default defineHandler(async (event) => {
     lt(dailyLogs.date, nextMonthStr)
   );
 
-  const [incomeResult] = await db
-    .select({ total: drizzleSql<number>`coalesce(sum(${transactions.amount}), 0)` })
+  // Obtenemos los datos puros y hacemos los cálculos en memoria
+  // Esto elimina CUALQUIER posibilidad de error por sintaxis SQL o casteo de tipos en Neon/Postgres
+  
+  const monthTransactions = await db
+    .select({ amount: transactions.amount, type: transactions.type })
     .from(transactions)
-    .where(and(monthConditionTx, eq(transactions.type, 'Ingreso')));
+    .where(monthConditionTx);
+    
+  let incomes = 0;
+  let expenses = 0;
+  
+  monthTransactions.forEach(tx => {
+    const amount = Number(tx.amount);
+    if (tx.type === 'Ingreso') {
+      incomes += amount;
+    } else if (tx.type === 'Gasto') {
+      expenses += amount;
+    }
+  });
 
-  const [expenseResult] = await db
-    .select({ total: drizzleSql<number>`coalesce(sum(${transactions.amount}), 0)` })
-    .from(transactions)
-    .where(and(monthConditionTx, eq(transactions.type, 'Gasto')));
+  const balance = incomes - expenses;
 
-  const [patientsResult] = await db
-    .select({ total: drizzleSql<number>`coalesce(sum(${dailyLogs.count}), 0)` })
+  const monthLogs = await db
+    .select({ count: dailyLogs.count })
     .from(dailyLogs)
     .where(monthConditionLogs);
 
-  const incomes = Number(incomeResult.total);
-  const expenses = Number(expenseResult.total);
-  const balance = incomes - expenses;
-  const totalPatients = Number(patientsResult.total);
+  const totalPatients = monthLogs.reduce((acc, log) => acc + Number(log.count), 0);
 
   // Filtro de tareas para HOY
   const todayStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
   
-  // Obtenemos las tareas del día y calculamos en memoria para evitar errores de sintaxis o de parseo de tipos en PostgreSQL
   const todayTasks = await db
     .select({ status: tasks.status })
     .from(tasks)
