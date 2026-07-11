@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useClients } from '@/hooks/useClients';
 import { usePartners } from '@/hooks/usePartners';
 import { Task } from '@/hooks/useTasks';
-import { Trash2, CalendarClock, AlignLeft, User, Briefcase } from 'lucide-react';
+import { Trash2, CalendarClock, AlignLeft, User, Briefcase, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { format as formatTz } from 'date-fns-tz';
@@ -33,9 +33,11 @@ interface TaskFormModalProps {
   isPending: boolean;
   isDeleting?: boolean;
   selectedDate?: Date;
+  initialEditMode?: boolean;
 }
 
-export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPending, isDeleting, selectedDate }: TaskFormModalProps) {
+export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPending, isDeleting, selectedDate, initialEditMode }: TaskFormModalProps) {
+  const [isEditingFull, setIsEditingFull] = useState(false);
   const { data: clients = [] } = useClients();
   const { data: partners = [] } = usePartners();
   
@@ -98,7 +100,8 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
         status: 'Pendiente'
       });
     }
-  }, [task, isOpen, selectedDate]);
+    setIsEditingFull(initialEditMode || false);
+  }, [task, isOpen, selectedDate, initialEditMode]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,21 +146,33 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
       <DialogContent className="sm:max-w-[450px] rounded-[2rem]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
-            {isEditMode ? 'Resumen de la Tarea' : 'Nueva Tarea'}
+            {isEditMode && !isEditingFull ? 'Resumen de la Tarea' : isEditMode ? 'Editar Tarea' : 'Nueva Tarea'}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           
-          {isEditMode ? (
+          {isEditMode && !isEditingFull ? (
             <div className="space-y-5 mb-4">
-              <div>
-                <h3 className="text-xl font-bold text-zinc-900 leading-tight">{formData.title}</h3>
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-zinc-900 leading-tight">{formData.title}</h3>
                 {formData.description && (
                   <p className="text-zinc-600 mt-2 flex items-start gap-2 text-sm bg-zinc-50 p-3 rounded-xl border border-zinc-100">
                     <AlignLeft className="w-4 h-4 mt-0.5 text-zinc-400 shrink-0" />
                     <span>{formData.description}</span>
                   </p>
                 )}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 text-blue-600 border-blue-200 hover:bg-blue-50 rounded-xl h-8 px-3"
+                  onClick={() => setIsEditingFull(true)}
+                >
+                  <Edit className="w-3.5 h-3.5 mr-1.5" />
+                  Editar
+                </Button>
               </div>
               
               <div className="bg-white rounded-xl p-4 space-y-4 border border-zinc-200/60 shadow-sm">
@@ -299,8 +314,31 @@ export function TaskFormModal({ task, isOpen, onClose, onSubmit, onDelete, isPen
                 </AlertDialogContent>
               </AlertDialog>
             )}
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isPending}>
-              {isPending ? 'Guardando...' : (isEditMode ? 'Guardar Estado' : 'Crear Tarea')}
+            {isEditMode && isEditingFull && (
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full mb-1 text-zinc-500 hover:text-zinc-700 rounded-xl"
+                onClick={() => {
+                  if (task) {
+                    setFormData({
+                      title: task.title,
+                      description: task.description || '',
+                      startTime: task.startTime,
+                      endTime: task.endTime,
+                      partnerId: task.partnerId || 'none',
+                      clientId: task.clientId || 'none',
+                      status: task.status
+                    });
+                  }
+                  setIsEditingFull(false);
+                }}
+              >
+                Cancelar Edición
+              </Button>
+            )}
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 rounded-xl h-11" disabled={isPending}>
+              {isPending ? 'Guardando...' : (!isEditMode ? 'Crear Tarea' : isEditingFull ? 'Actualizar Tarea' : 'Guardar Estado')}
             </Button>
           </div>
         </form>

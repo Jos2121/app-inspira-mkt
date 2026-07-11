@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { format, addDays, subDays, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, User, Briefcase, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, User, Briefcase, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Task } from '@/hooks/useTasks';
@@ -41,6 +41,7 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalStartEdit, setModalStartEdit] = useState(false);
 
   // Auto-scroll a las 7:00 AM
   useEffect(() => {
@@ -75,12 +76,14 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
     newDate.setHours(hour, 0, 0, 0);
     setSelectedDate(newDate);
     setSelectedTask(null);
+    setModalStartEdit(false);
     setIsModalOpen(true);
   };
 
-  const handleTaskClick = (e: React.MouseEvent, task: Task) => {
+  const handleTaskClick = (e: React.MouseEvent, task: Task, forceEdit = false) => {
     e.stopPropagation();
     setSelectedTask(task);
+    setModalStartEdit(forceEdit);
     setIsModalOpen(true);
   };
 
@@ -372,17 +375,26 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-red-400 hover:text-red-600 hover:bg-red-50"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </AlertDialogTrigger>
+                        <div className="flex justify-end gap-1 items-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                            onClick={(e) => handleTaskClick(e, task as any, true)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-400 hover:text-red-600 hover:bg-red-50"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
                           <AlertDialogContent className="rounded-[2rem] z-[100]">
                             <AlertDialogHeader>
                               <AlertDialogTitle>¿Eliminar tarea?</AlertDialogTitle>
@@ -404,6 +416,7 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -457,6 +470,7 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
         isPending={isPending}
         isDeleting={isDeleting}
         selectedDate={selectedDate}
+        initialEditMode={modalStartEdit}
       />
     </div>
   );
