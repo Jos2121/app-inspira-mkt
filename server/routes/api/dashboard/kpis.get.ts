@@ -1,12 +1,11 @@
 import { defineHandler } from 'nitro';
-import { createError } from 'nitro/h3';
 import { db } from '../../../utils/db';
 import { transactions, dailyLogs, tasks, clients, partners, diagnosticRecords } from '../../../db/schema';
-import { eq, and, gte, lt, like, sql } from 'drizzle-orm';
+import { and, gte, lt, like, eq } from 'drizzle-orm';
+import { createError } from 'nitro/h3';
 
 export default defineHandler(async (event) => {
-  const userId = event.context.userId;
-  if (!userId) {
+  if (!event.context.userId) {
     throw createError({ statusCode: 401, message: 'Unauthorized' });
   }
 
@@ -30,66 +29,44 @@ export default defineHandler(async (event) => {
     const nextMonth = month === 12 ? 1 : month + 1;
     const nextMonthStr = `${nextMonthYear}-${nextMonth.toString().padStart(2, '0')}-01`;
 
-    const monthConditionTx = and(
-      gte(transactions.date, startMonthStr),
-      lt(transactions.date, nextMonthStr)
-    );
-
-    const monthConditionLogs = and(
-      gte(dailyLogs.date, startMonthStr),
-      lt(dailyLogs.date, nextMonthStr)
-    );
-
-    // Ejecutamos TODAS las consultas a la base de datos al mismo tiempo para máxima velocidad y evitar cuelgues
+    // 1. Obtenemos las filas base (Sin funciones agregadas que puedan chocar en Postgres)
     const [
-      incomeRows,
-      expenseRows,
-      patientsRows,
-      tasksRows,
-      clientsRows,
-      partnersRows,
-      diagnosticsRows
+      allTx,
+      allLogs,
+      todayTasksData,
+      allClients,
+      activePartnersData,
+      allDiagnostics
     ] = await Promise.all([
-      db.select({ total: sql<number>`coalesce(sum(${transactions.amount}), 0)` })
-        .from(transactions)
-        .where(and(monthConditionTx, eq(transactions.type, 'Ingreso'))),
-        
-      db.select({ total: sql<number>`coalesce(sum(${transactions.amount}), 0)` })
-        .from(transactions)
-        .where(and(monthConditionTx, eq(transactions.type, 'Gasto'))),
-        
-      db.select({ total: sql<number>`coalesce(sum(${dailyLogs.count}), 0)` })
-        .from(dailyLogs)
-        .where(monthConditionLogs),
-        
-      db.select({ value: sql<number>`count(*)` })
-        .from(tasks)
-        .where(like(tasks.startTime, `${todayStr}%`)),
-        
-      db.select({ value: sql<number>`count(*)` })
-        .from(clients),
-        
-      db.select({ value: sql<number>`count(*)` })
-        .from(partners)
-        .where(eq(partners.status, 'Activo')),
-        
-      db.select({ value: sql<number>`count(*)` })
-        .from(diagnosticRecords)
+      db.query.transactions.findMany({
+        where: and(gte(transactions.date, startMonthStr), lt(transactions.date, nextMonthStr))
+      }),
+      db.query.dailyLogs.findMany({
+        where: and(gte(dailyLogs.date, startMonthStr), lt(dailyLogs.date, nextMonthStr))
+      }),
+      db.query.tasks.findMany({
+        where: like(tasks.startTime, `${todayStr}%`)
+      }),
+      db.select({ id: clients.id }).from(clients),
+      db.select({ id: partners.id }).from(partners).where(eq(partners.status, 'Activo')),
+      db.select({ id: diagnosticRecords.id }).from(diagnosticRecords)
     ]);
 
-    const incomes = Number(incomeRows[0]?.total || 0);
-    const expenses = Number(expenseRows[0]?.total || 0);
+    // 2. Ejecutamos la matemática nativa en JS (100% segura y precisa)
+    const incomes = allTx.filter(t => t.type === 'Ingreso').reduce((sum, t) => sum + Number(t.amount), 0);
+    const expenses = allTx.filter(t => t.type === 'Gasto').reduce((sum, t) => sum + Number(t.amount), 0);
     const balance = incomes - expenses;
+    const totalPatients = allLogs.reduce((sum, l) => sum + Number(l.count), 0);
 
     return {
       incomes,
       expenses,
       balance,
-      totalPatients: Number(patientsRows[0]?.total || 0),
-      todayTasks: Number(tasksRows[0]?.value || 0),
-      totalClients: Number(clientsRows[0]?.value || 0),
-      activePartners: Number(partnersRows[0]?.value || 0),
-      totalDiagnostics: Number(diagnosticsRows[0]?.value || 0),
+      totalPatients,
+      todayTasks: todayTasksData.length,
+      totalClients: allClients.length,
+      activePartners: activePartnersData.length,
+      totalDiagnostics: allDiagnostics.length,
     };
 
   } catch (error: any) {

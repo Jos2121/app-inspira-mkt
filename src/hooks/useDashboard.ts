@@ -17,26 +17,17 @@ export function useDashboardKpis() {
     queryKey: ['dashboard-kpis'],
     queryFn: async () => {
       const res = await fetch('/api/dashboard/kpis');
-      
       if (!res.ok) {
         throw new Error(`Error HTTP ${res.status}`);
       }
       
-      try {
-        const data = await res.json();
-        if (data.error) {
-          toast.error(data.error);
-          throw new Error(data.error);
-        }
-        return data;
-      } catch (e) {
-        console.error("Error procesando respuesta del Dashboard:", e);
-        toast.error("Error de conexión con el servidor");
-        throw new Error("Respuesta inválida del servidor");
-      }
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      
+      return data;
     },
-    // Limitar reintentos para que no se quede colgado "cargando" indefinidamente
-    retry: 1,
-    refetchOnWindowFocus: false
+    refetchOnMount: true,       // Obliga a refetch siempre que entras a la pantalla
+    refetchOnWindowFocus: true, // Recarga si sales de la pestaña y vuelves
+    staleTime: 0,               // Los datos expiran de inmediato en caché
   });
 }

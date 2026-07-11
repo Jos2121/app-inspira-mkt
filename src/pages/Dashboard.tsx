@@ -16,7 +16,7 @@ export default function Dashboard() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           title="Ingresos (Mes)"
-          value={kpis?.incomes ? formatCurrency(kpis.incomes) : formatCurrency(0)}
+          value={formatCurrency(kpis?.incomes ?? 0)}
           icon={TrendingUp}
           isLoading={isLoading}
           delay="100ms"
@@ -24,7 +24,7 @@ export default function Dashboard() {
         />
         <KpiCard
           title="Gastos (Mes)"
-          value={kpis?.expenses ? formatCurrency(kpis.expenses) : formatCurrency(0)}
+          value={formatCurrency(kpis?.expenses ?? 0)}
           icon={TrendingDown}
           isLoading={isLoading}
           delay="200ms"
@@ -32,7 +32,7 @@ export default function Dashboard() {
         />
         <KpiCard
           title="Utilidad (Mes)"
-          value={kpis?.balance ? formatCurrency(kpis.balance) : formatCurrency(0)}
+          value={formatCurrency(kpis?.balance ?? 0)}
           icon={Wallet}
           isLoading={isLoading}
           delay="300ms"
@@ -40,14 +40,13 @@ export default function Dashboard() {
         />
         <KpiCard
           title="Total Pacientes (Mes)"
-          value={kpis?.totalPatients || '0'}
+          value={kpis?.totalPatients ?? '0'}
           icon={Users}
           isLoading={isLoading}
           delay="400ms"
           colorVariant="indigo"
         />
         
-        {/* Nuevas Métricas */}
         <KpiCard
           title="Tareas de Hoy"
           value={kpis?.todayTasks ?? '0'}
