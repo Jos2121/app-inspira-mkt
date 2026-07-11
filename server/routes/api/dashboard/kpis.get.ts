@@ -62,20 +62,21 @@ export default defineHandler(async (event) => {
   // Filtro de tareas para HOY
   const todayStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
   
-  const [tasksResult] = await db
-    .select({
-      total: drizzleSql<number>`count(*)::int`,
-      completed: drizzleSql<number>`coalesce(sum(case when ${tasks.status} = 'Completada' then 1 else 0 end), 0)::int`
-    })
+  // Obtenemos las tareas del día y calculamos en memoria para evitar errores de sintaxis o de parseo de tipos en PostgreSQL
+  const todayTasks = await db
+    .select({ status: tasks.status })
     .from(tasks)
     .where(like(tasks.startTime, `${todayStr}%`));
+
+  const todayTasksTotal = todayTasks.length;
+  const todayTasksCompleted = todayTasks.filter(t => t.status === 'Completada').length;
 
   return {
     incomes,
     expenses,
     balance,
     totalPatients,
-    todayTasksTotal: Number(tasksResult?.total || 0),
-    todayTasksCompleted: Number(tasksResult?.completed || 0),
+    todayTasksTotal,
+    todayTasksCompleted,
   };
 });
