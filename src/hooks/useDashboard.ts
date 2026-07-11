@@ -7,6 +7,7 @@ export type DashboardKpis = {
   totalPatients: number;
   todayTasksTotal: number;
   todayTasksCompleted: number;
+  totalClients: number;
 };
 
 export function useDashboardKpis() {

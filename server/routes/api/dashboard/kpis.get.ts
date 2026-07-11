@@ -1,7 +1,7 @@
 import { defineHandler } from 'nitro';
 import { createError } from 'nitro/h3';
 import { db } from '../../../utils/db';
-import { transactions, dailyLogs, tasks } from '../../../db/schema';
+import { transactions, dailyLogs, tasks, clients } from '../../../db/schema';
 import { sql as drizzleSql, eq, and, gte, lt } from 'drizzle-orm';
 
 export default defineHandler(async (event) => {
@@ -40,7 +40,7 @@ export default defineHandler(async (event) => {
       lt(dailyLogs.date, nextMonthStr)
     );
 
-    // 1. Revertimos a las agregaciones SQL originales que funcionaban perfectamente
+    // 1. Agregaciones SQL originales
     const [incomeResult] = await db
       .select({ total: drizzleSql<number>`coalesce(sum(${transactions.amount}), 0)` })
       .from(transactions)
@@ -61,7 +61,7 @@ export default defineHandler(async (event) => {
     const balance = incomes - expenses;
     const totalPatients = Number(patientsResult?.total || 0);
 
-    // 2. Extraemos las tareas del día sin usar sentencias complejas de base de datos
+    // 2. Extraemos las tareas del día
     const todayStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
     
     const allTasks = await db.select({ status: tasks.status, startTime: tasks.startTime }).from(tasks);
@@ -70,6 +70,10 @@ export default defineHandler(async (event) => {
     const todayTasksTotal = todayTasks.length;
     const todayTasksCompleted = todayTasks.filter(t => t.status === 'Completada').length;
 
+    // 3. Extraemos el total de clientes registrados
+    const allClients = await db.select({ id: clients.id }).from(clients);
+    const totalClientsCount = allClients.length;
+
     return {
       incomes,
       expenses,
@@ -77,6 +81,7 @@ export default defineHandler(async (event) => {
       totalPatients,
       todayTasksTotal,
       todayTasksCompleted,
+      totalClients: totalClientsCount,
     };
   } catch (error: any) {
     console.error("Error en API de Dashboard:", error);
