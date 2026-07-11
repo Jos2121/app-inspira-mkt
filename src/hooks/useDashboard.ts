@@ -5,6 +5,10 @@ export type DashboardKpis = {
   expenses: number;
   balance: number;
   totalPatients: number;
+  todayTasks: number;
+  totalClients: number;
+  activePartners: number;
+  totalDiagnostics: number;
 };
 
 export function useDashboardKpis() {

@@ -1,7 +1,7 @@
 import { defineHandler } from 'nitro';
 import { db } from '../../../utils/db';
-import { transactions, dailyLogs } from '../../../db/schema';
-import { sql as drizzleSql, eq, and, gte, lt } from 'drizzle-orm';
+import { transactions, dailyLogs, tasks, clients, partners, diagnosticRecords } from '../../../db/schema';
+import { sql as drizzleSql, eq, and, gte, lt, like } from 'drizzle-orm';
 
 export default defineHandler(async (event) => {
   const userId = event.context.userId;
@@ -21,8 +21,10 @@ export default defineHandler(async (event) => {
   
   const year = getPart('year');
   const month = getPart('month'); // 1-12
+  const day = getPart('day');
 
   const startMonthStr = `${year}-${month.toString().padStart(2, '0')}-01`;
+  const todayStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
   const nextMonthYear = month === 12 ? year + 1 : year;
   const nextMonth = month === 12 ? 1 : month + 1;
   const nextMonthStr = `${nextMonthYear}-${nextMonth.toString().padStart(2, '0')}-01`;
@@ -53,6 +55,25 @@ export default defineHandler(async (event) => {
     .from(dailyLogs)
     .where(monthConditionLogs);
 
+  // Nuevas métricas
+  const [tasksResult] = await db
+    .select({ count: drizzleSql<number>`count(*)` })
+    .from(tasks)
+    .where(like(tasks.startTime, `${todayStr}%`));
+
+  const [clientsResult] = await db
+    .select({ count: drizzleSql<number>`count(*)` })
+    .from(clients);
+
+  const [partnersResult] = await db
+    .select({ count: drizzleSql<number>`count(*)` })
+    .from(partners)
+    .where(eq(partners.status, 'Activo'));
+
+  const [diagnosticsResult] = await db
+    .select({ count: drizzleSql<number>`count(*)` })
+    .from(diagnosticRecords);
+
   const incomes = Number(incomeResult.total);
   const expenses = Number(expenseResult.total);
   const balance = incomes - expenses;
@@ -63,5 +84,9 @@ export default defineHandler(async (event) => {
     expenses,
     balance,
     totalPatients,
+    todayTasks: Number(tasksResult.count),
+    totalClients: Number(clientsResult.count),
+    activePartners: Number(partnersResult.count),
+    totalDiagnostics: Number(diagnosticsResult.count),
   };
 });

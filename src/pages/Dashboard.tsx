@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, Wallet, Users } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Users, CalendarDays, Briefcase, UserCheck, Activity } from 'lucide-react';
 import { useDashboardKpis } from '@/hooks/useDashboard';
 import { KpiCard } from './dashboard/components/KpiCard';
 import { formatCurrency } from '@/lib/utils';
@@ -45,6 +45,44 @@ export default function Dashboard() {
           isLoading={isLoading}
           delay="400ms"
           colorVariant="indigo"
+        />
+        
+        {/* Nuevas Métricas */}
+        <KpiCard
+          title="Tareas de Hoy"
+          value={kpis?.todayTasks ?? '0'}
+          subtitle="Hoy"
+          icon={CalendarDays}
+          isLoading={isLoading}
+          delay="500ms"
+          colorVariant="amber"
+        />
+        <KpiCard
+          title="Total Clientes"
+          value={kpis?.totalClients ?? '0'}
+          subtitle="General"
+          icon={Briefcase}
+          isLoading={isLoading}
+          delay="600ms"
+          colorVariant="blue"
+        />
+        <KpiCard
+          title="Staff Activo"
+          value={kpis?.activePartners ?? '0'}
+          subtitle="General"
+          icon={UserCheck}
+          isLoading={isLoading}
+          delay="700ms"
+          colorVariant="emerald"
+        />
+        <KpiCard
+          title="Diagnósticos"
+          value={kpis?.totalDiagnostics ?? '0'}
+          subtitle="General"
+          icon={Activity}
+          isLoading={isLoading}
+          delay="800ms"
+          colorVariant="violet"
         />
       </div>
     </div>
