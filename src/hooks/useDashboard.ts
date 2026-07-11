@@ -13,21 +13,27 @@ export type DashboardKpis = {
 };
 
 export function useDashboardKpis() {
-  return useQuery<DashboardKpis>({
+  return useQuery<DashboardKpis, Error>({
     queryKey: ['dashboard-kpis'],
     queryFn: async () => {
-      const res = await fetch('/api/dashboard/kpis');
-      if (!res.ok) {
-        throw new Error(`Error HTTP ${res.status}`);
+      try {
+        const res = await fetch('/api/dashboard/kpis');
+        
+        // Si el servidor falla (ej. 500), extraemos el mensaje de error del JSON
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.message || `Error HTTP ${res.status}`);
+        }
+        
+        const data = await res.json();
+        return data;
+      } catch (err: any) {
+        toast.error(err.message || 'Error cargando las métricas del dashboard');
+        throw err; // Lanza el error para activar el estado isError de React Query
       }
-      
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      
-      return data;
     },
-    refetchOnMount: true,       // Obliga a refetch siempre que entras a la pantalla
-    refetchOnWindowFocus: true, // Recarga si sales de la pestaña y vuelves
-    staleTime: 0,               // Los datos expiran de inmediato en caché
+    retry: 1, // Solo 1 reintento para evitar bloqueos largos
+    refetchOnWindowFocus: true,
+    staleTime: 1000 * 30, // Caché de 30 segundos
   });
 }

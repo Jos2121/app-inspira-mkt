@@ -5,11 +5,13 @@ import { and, gte, lt, like, eq } from 'drizzle-orm';
 import { createError } from 'nitro/h3';
 
 export default defineHandler(async (event) => {
+  // 1. Verificación de Autenticación
   if (!event.context.userId) {
-    throw createError({ statusCode: 401, message: 'Unauthorized' });
+    throw createError({ statusCode: 401, message: 'No autorizado' });
   }
 
   try {
+    // 2. Configuración de Fechas (Zona horaria de Lima)
     const now = new Date();
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: 'America/Lima',
@@ -29,7 +31,7 @@ export default defineHandler(async (event) => {
     const nextMonth = month === 12 ? 1 : month + 1;
     const nextMonthStr = `${nextMonthYear}-${nextMonth.toString().padStart(2, '0')}-01`;
 
-    // 1. Obtenemos las filas base (Sin funciones agregadas que puedan chocar en Postgres)
+    // 3. Ejecución Concurrente Segura (sin métodos .query que dependan de relaciones)
     const [
       allTx,
       allLogs,
@@ -38,26 +40,21 @@ export default defineHandler(async (event) => {
       activePartnersData,
       allDiagnostics
     ] = await Promise.all([
-      db.query.transactions.findMany({
-        where: and(gte(transactions.date, startMonthStr), lt(transactions.date, nextMonthStr))
-      }),
-      db.query.dailyLogs.findMany({
-        where: and(gte(dailyLogs.date, startMonthStr), lt(dailyLogs.date, nextMonthStr))
-      }),
-      db.query.tasks.findMany({
-        where: like(tasks.startTime, `${todayStr}%`)
-      }),
+      db.select().from(transactions).where(and(gte(transactions.date, startMonthStr), lt(transactions.date, nextMonthStr))),
+      db.select().from(dailyLogs).where(and(gte(dailyLogs.date, startMonthStr), lt(dailyLogs.date, nextMonthStr))),
+      db.select().from(tasks).where(like(tasks.startTime, `${todayStr}%`)),
       db.select({ id: clients.id }).from(clients),
       db.select({ id: partners.id }).from(partners).where(eq(partners.status, 'Activo')),
       db.select({ id: diagnosticRecords.id }).from(diagnosticRecords)
     ]);
 
-    // 2. Ejecutamos la matemática nativa en JS (100% segura y precisa)
-    const incomes = allTx.filter(t => t.type === 'Ingreso').reduce((sum, t) => sum + Number(t.amount), 0);
-    const expenses = allTx.filter(t => t.type === 'Gasto').reduce((sum, t) => sum + Number(t.amount), 0);
+    // 4. Cálculos Matemáticos en JS (Seguros)
+    const incomes = allTx.filter(t => t.type === 'Ingreso').reduce((sum, t) => sum + Number(t.amount || 0), 0);
+    const expenses = allTx.filter(t => t.type === 'Gasto').reduce((sum, t) => sum + Number(t.amount || 0), 0);
     const balance = incomes - expenses;
-    const totalPatients = allLogs.reduce((sum, l) => sum + Number(l.count), 0);
+    const totalPatients = allLogs.reduce((sum, l) => sum + Number(l.count || 0), 0);
 
+    // 5. Retorno de JSON Válido
     return {
       incomes,
       expenses,
@@ -70,10 +67,11 @@ export default defineHandler(async (event) => {
     };
 
   } catch (error: any) {
-    console.error("Dashboard API Error:", error);
+    // 6. Manejo de Errores Críticos (Devuelve 500 para que el Frontend lo capture)
+    console.error("Error crítico en Dashboard KPIs:", error);
     throw createError({ 
       statusCode: 500, 
-      message: error.message || 'Error interno calculando KPIs'
+      message: error.message || 'Fallo interno al procesar los KPIs de la base de datos'
     });
   }
 });
