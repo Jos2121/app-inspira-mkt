@@ -2,7 +2,7 @@ import { defineHandler } from 'nitro';
 import { createError } from 'nitro/h3';
 import { db } from '../../../utils/db';
 import { transactions, dailyLogs, tasks, clients, partners, diagnosticRecords } from '../../../db/schema';
-import { eq, and, gte, lt, like, sum, count } from 'drizzle-orm';
+import { eq, and, gte, lt, like, sql } from 'drizzle-orm';
 
 export default defineHandler(async (event) => {
   const userId = event.context.userId;
@@ -40,68 +40,63 @@ export default defineHandler(async (event) => {
       lt(dailyLogs.date, nextMonthStr)
     );
 
-    // Sumas
-    const [incomeResult] = await db
-      .select({ total: sum(transactions.amount) })
-      .from(transactions)
-      .where(and(monthConditionTx, eq(transactions.type, 'Ingreso')));
+    // Ejecutamos TODAS las consultas a la base de datos al mismo tiempo para máxima velocidad y evitar cuelgues
+    const [
+      incomeRows,
+      expenseRows,
+      patientsRows,
+      tasksRows,
+      clientsRows,
+      partnersRows,
+      diagnosticsRows
+    ] = await Promise.all([
+      db.select({ total: sql<number>`coalesce(sum(${transactions.amount}), 0)` })
+        .from(transactions)
+        .where(and(monthConditionTx, eq(transactions.type, 'Ingreso'))),
+        
+      db.select({ total: sql<number>`coalesce(sum(${transactions.amount}), 0)` })
+        .from(transactions)
+        .where(and(monthConditionTx, eq(transactions.type, 'Gasto'))),
+        
+      db.select({ total: sql<number>`coalesce(sum(${dailyLogs.count}), 0)` })
+        .from(dailyLogs)
+        .where(monthConditionLogs),
+        
+      db.select({ value: sql<number>`count(*)` })
+        .from(tasks)
+        .where(like(tasks.startTime, `${todayStr}%`)),
+        
+      db.select({ value: sql<number>`count(*)` })
+        .from(clients),
+        
+      db.select({ value: sql<number>`count(*)` })
+        .from(partners)
+        .where(eq(partners.status, 'Activo')),
+        
+      db.select({ value: sql<number>`count(*)` })
+        .from(diagnosticRecords)
+    ]);
 
-    const [expenseResult] = await db
-      .select({ total: sum(transactions.amount) })
-      .from(transactions)
-      .where(and(monthConditionTx, eq(transactions.type, 'Gasto')));
-
-    const [patientsResult] = await db
-      .select({ total: sum(dailyLogs.count) })
-      .from(dailyLogs)
-      .where(monthConditionLogs);
-
-    // Conteos
-    const [tasksResult] = await db
-      .select({ value: count() })
-      .from(tasks)
-      .where(like(tasks.startTime, `${todayStr}%`));
-
-    const [clientsResult] = await db
-      .select({ value: count() })
-      .from(clients);
-
-    const [partnersResult] = await db
-      .select({ value: count() })
-      .from(partners)
-      .where(eq(partners.status, 'Activo'));
-
-    const [diagnosticsResult] = await db
-      .select({ value: count() })
-      .from(diagnosticRecords);
-
-    const incomes = Number(incomeResult?.total || 0);
-    const expenses = Number(expenseResult?.total || 0);
+    const incomes = Number(incomeRows[0]?.total || 0);
+    const expenses = Number(expenseRows[0]?.total || 0);
     const balance = incomes - expenses;
 
     return {
       incomes,
       expenses,
       balance,
-      totalPatients: Number(patientsResult?.total || 0),
-      todayTasks: Number(tasksResult?.value || 0),
-      totalClients: Number(clientsResult?.value || 0),
-      activePartners: Number(partnersResult?.value || 0),
-      totalDiagnostics: Number(diagnosticsResult?.value || 0),
+      totalPatients: Number(patientsRows[0]?.total || 0),
+      todayTasks: Number(tasksRows[0]?.value || 0),
+      totalClients: Number(clientsRows[0]?.value || 0),
+      activePartners: Number(partnersRows[0]?.value || 0),
+      totalDiagnostics: Number(diagnosticsRows[0]?.value || 0),
     };
+
   } catch (error: any) {
-    console.error("Error en KPIs:", error);
-    // Devuelve ceros si algo falla para no romper la pantalla, además del error
-    return {
-      incomes: 0,
-      expenses: 0,
-      balance: 0,
-      totalPatients: 0,
-      todayTasks: 0,
-      totalClients: 0,
-      activePartners: 0,
-      totalDiagnostics: 0,
-      error: error.message
-    };
+    console.error("Dashboard API Error:", error);
+    throw createError({ 
+      statusCode: 500, 
+      message: error.message || 'Error interno calculando KPIs'
+    });
   }
 });
