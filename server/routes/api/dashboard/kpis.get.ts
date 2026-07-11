@@ -1,7 +1,7 @@
 import { defineHandler } from 'nitro';
 import { createError } from 'nitro/h3';
 import { db } from '../../../utils/db';
-import { transactions, dailyLogs, tasks, clients, partners, diagnosticRecords } from '../../../db/schema';
+import { transactions, tasks, clients, partners, diagnosticRecords } from '../../../db/schema';
 import { sql as drizzleSql, eq, and, gte, lt } from 'drizzle-orm';
 
 export default defineHandler(async (event) => {
@@ -11,7 +11,6 @@ export default defineHandler(async (event) => {
       throw createError({ statusCode: 401, message: 'Unauthorized' });
     }
 
-    // Usar Intl.DateTimeFormat para extraer de forma segura el año y mes en la hora de Lima
     const now = new Date();
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: 'America/Lima',
@@ -22,7 +21,7 @@ export default defineHandler(async (event) => {
     const getPart = (type: string) => parseInt(parts.find(p => p.type === type)!.value, 10);
     
     const year = getPart('year');
-    const month = getPart('month'); // 1-12
+    const month = getPart('month');
     const day = getPart('day');
 
     const startMonthStr = `${year}-${month.toString().padStart(2, '0')}-01`;
@@ -35,12 +34,6 @@ export default defineHandler(async (event) => {
       lt(transactions.date, nextMonthStr)
     );
 
-    const monthConditionLogs = and(
-      gte(dailyLogs.date, startMonthStr),
-      lt(dailyLogs.date, nextMonthStr)
-    );
-
-    // 1. Agregaciones SQL originales
     const [incomeResult] = await db
       .select({ total: drizzleSql<number>`coalesce(sum(${transactions.amount}), 0)` })
       .from(transactions)
@@ -51,17 +44,10 @@ export default defineHandler(async (event) => {
       .from(transactions)
       .where(and(monthConditionTx, eq(transactions.type, 'Gasto')));
 
-    const [patientsResult] = await db
-      .select({ total: drizzleSql<number>`coalesce(sum(${dailyLogs.count}), 0)` })
-      .from(dailyLogs)
-      .where(monthConditionLogs);
-
     const incomes = Number(incomeResult?.total || 0);
     const expenses = Number(expenseResult?.total || 0);
     const balance = incomes - expenses;
-    const totalPatients = Number(patientsResult?.total || 0);
 
-    // 2. Extraemos las tareas del día
     const todayStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
     
     const allTasks = await db.select({ status: tasks.status, startTime: tasks.startTime }).from(tasks);
@@ -70,7 +56,6 @@ export default defineHandler(async (event) => {
     const todayTasksTotal = todayTasks.length;
     const todayTasksCompleted = todayTasks.filter(t => t.status === 'Completada').length;
 
-    // 3. Extraemos los totales históricos (Clientes, Socios, Diagnósticos)
     const allClients = await db.select({ id: clients.id }).from(clients);
     const totalClientsCount = allClients.length;
 
@@ -84,7 +69,6 @@ export default defineHandler(async (event) => {
       incomes,
       expenses,
       balance,
-      totalPatients,
       todayTasksTotal,
       todayTasksCompleted,
       totalClients: totalClientsCount,

@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, Wallet, Users, CalendarCheck, Contact, UserSquare2, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, CalendarCheck, Contact, UserSquare2, Activity } from 'lucide-react';
 import { useDashboardKpis } from '@/hooks/useDashboard';
 import { KpiCard } from './dashboard/components/KpiCard';
 import { formatCurrency } from '@/lib/utils';
@@ -39,20 +39,11 @@ export default function Dashboard() {
           colorVariant="blue"
         />
         <KpiCard
-          title="Total Pacientes (Mes)"
-          value={kpis?.totalPatients ?? '0'}
-          icon={Users}
-          isLoading={isLoading}
-          delay="400ms"
-          colorVariant="indigo"
-        />
-        
-        <KpiCard
           title="Total Clientes"
           value={kpis?.totalClients ?? '0'}
           icon={Contact}
           isLoading={isLoading}
-          delay="500ms"
+          delay="400ms"
           subtitle="Directorio Histórico"
           colorVariant="amber"
         />
@@ -61,7 +52,7 @@ export default function Dashboard() {
           value={kpis?.totalPartners ?? '0'}
           icon={UserSquare2}
           isLoading={isLoading}
-          delay="600ms"
+          delay="500ms"
           subtitle="Staff Registrado"
           colorVariant="blue"
         />
@@ -70,7 +61,7 @@ export default function Dashboard() {
           value={kpis?.totalDiagnostics ?? '0'}
           icon={Activity}
           isLoading={isLoading}
-          delay="700ms"
+          delay="600ms"
           subtitle="Auditorías Realizadas"
           colorVariant="emerald"
         />
@@ -79,7 +70,7 @@ export default function Dashboard() {
           value={kpis ? `${kpis.todayTasksCompleted} / ${kpis.todayTasksTotal}` : '0 / 0'}
           icon={CalendarCheck}
           isLoading={isLoading}
-          delay="800ms"
+          delay="700ms"
           subtitle="Agenda Diaria"
           colorVariant="violet"
           progressValue={kpis?.todayTasksTotal ? (kpis.todayTasksCompleted / kpis.todayTasksTotal) * 100 : 0}

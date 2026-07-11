@@ -4,7 +4,6 @@ export type DashboardKpis = {
   incomes: number;
   expenses: number;
   balance: number;
-  totalPatients: number;
   todayTasksTotal: number;
   todayTasksCompleted: number;
   totalClients: number;
