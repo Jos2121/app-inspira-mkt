@@ -38,8 +38,8 @@ export async function getSessionFromCookie(cookieHeader: string | null): Promise
     if (roleRecord.length > 0) {
       session!.user.role = roleRecord[0].role;
     } else {
-      // Default to Operador if not found
-      session!.user.role = 'Operador';
+      // Default to Guest if not found in the allowed appRoles list
+      session!.user.role = 'Guest';
     }
     
     return session;

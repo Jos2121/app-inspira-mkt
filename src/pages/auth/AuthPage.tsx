@@ -37,17 +37,20 @@ export function AuthPage() {
           </div>
           
           <div className="auth-wrapper">
-            <AuthView path={path as any} redirectTo="/" />
+            {path === 'sign-up' ? (
+              <div className="text-center p-4 bg-red-50 text-red-600 rounded-lg">
+                El registro público está deshabilitado. Por favor, contacta al administrador.
+              </div>
+            ) : (
+              <AuthView path={path as any} redirectTo="/" />
+            )}
           </div>
 
           {/* Custom Footer Links */}
           <div className="mt-8 text-center text-sm text-zinc-500 font-medium">
             {path === 'sign-in' ? (
               <p>
-                ¿No tienes una cuenta?{' '}
-                <Link to="/auth/sign-up" className="text-blue-600 hover:text-blue-700 hover:underline font-semibold transition-colors">
-                  Regístrate aquí
-                </Link>
+                Si necesitas una cuenta, contacta a tu administrador.
               </p>
             ) : (
               <p>

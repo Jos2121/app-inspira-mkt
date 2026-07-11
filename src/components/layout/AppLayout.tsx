@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuthSession } from '@/lib/auth-client';
+import { useAuthSession, authClient } from '@/lib/auth-client';
 import { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { MobileHeader } from './MobileHeader';
@@ -18,7 +18,25 @@ export function AppLayout() {
     return <Navigate to="/auth/sign-in" state={{ from: location }} replace />;
   }
 
-  const role = data.user.role || 'Operador';
+  const role = data.user.role || 'Guest';
+  
+  if (role === 'Guest') {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-zinc-50 p-6">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-zinc-200 max-w-md text-center">
+          <h2 className="text-2xl font-bold text-zinc-900 mb-2">Cuenta Pendiente</h2>
+          <p className="text-zinc-500 mb-6">Tu cuenta está pendiente de aprobación. Por favor, contacta a un administrador para que te asigne un rol.</p>
+          <button
+            onClick={() => authClient.signOut()}
+            className="px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 transition-colors"
+          >
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const isAdmin = role === 'Admin';
 
   return (
