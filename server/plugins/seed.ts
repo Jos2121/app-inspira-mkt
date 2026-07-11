@@ -1,8 +1,7 @@
-import { defineNitroPlugin } from 'nitro/runtime/plugin';
 import { db } from '../utils/db';
 import { appRoles } from '../db/schema';
 
-export default defineNitroPlugin(async () => {
+export default async function() {
   console.log('[Seed] Verificando roles de prueba en base de datos...');
   try {
     const rolesToSeed = [
@@ -19,4 +18,4 @@ export default defineNitroPlugin(async () => {
   } catch (e) {
     console.error('[Seed] Error al insertar roles:', e);
   }
-});
+}
