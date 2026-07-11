@@ -261,10 +261,10 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
                     "absolute rounded-lg p-2 border shadow-sm cursor-pointer pointer-events-auto transition-transform hover:scale-[1.01] overflow-hidden group flex flex-col",
                     getStatusColor(task.status)
                   )}
-                  style={{ 
-                    top, 
-                    height, 
-                    left: `${leftPercent}%`, 
+                  style={{
+                    top,
+                    height,
+                    left: `${leftPercent}%`,
                     width: `calc(${widthPercent}% - 4px)`,
                     marginLeft: '4px',
                     zIndex: 10 + task.column
@@ -300,6 +300,7 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
           </div>
           
         </div>
+      </div>
       </div>
 
       {/* Tabla de Historial Diario */}
