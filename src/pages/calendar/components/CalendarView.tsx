@@ -56,6 +56,10 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
   const targetDateStr = format(currentDate, 'yyyy-MM-dd');
   const limaToday = getLimaToday();
   const isCurrentDay = isSameDay(currentDate, limaToday);
+  
+  // Paginación para el historial de todas las tareas
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -173,6 +177,11 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
   });
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
+
+  // Historial de tareas (Todas las tareas ordenadas por fecha descendente)
+  const sortedAllTasks = [...tasks].sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+  const totalPages = Math.ceil(sortedAllTasks.length / ITEMS_PER_PAGE);
+  const paginatedAllTasks = sortedAllTasks.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   return (
     <div className="space-y-6 flex flex-col">
@@ -303,13 +312,14 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
       </div>
       </div>
 
-      {/* Tabla de Historial Diario */}
+      {/* Tabla de Historial General */}
       <div className="glass rounded-[2rem] border-zinc-200/60 shadow-sm overflow-hidden p-6 bg-white/50">
-        <h3 className="text-xl font-bold text-zinc-900 mb-4">Agenda del Día ({mappedTasks.length})</h3>
+        <h3 className="text-xl font-bold text-zinc-900 mb-4">Historial de Todas las Tareas ({sortedAllTasks.length})</h3>
         <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
           <Table>
             <TableHeader className="bg-zinc-50/50">
               <TableRow>
+                <TableHead>Fecha</TableHead>
                 <TableHead>Hora</TableHead>
                 <TableHead>Tarea</TableHead>
                 <TableHead>Socio / Staff</TableHead>
@@ -319,19 +329,26 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mappedTasks.length === 0 ? (
+              {sortedAllTasks.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-zinc-500">
-                    No hay tareas programadas para este día.
+                  <TableCell colSpan={7} className="text-center py-8 text-zinc-500">
+                    No hay tareas programadas.
                   </TableCell>
                 </TableRow>
               ) : (
-                mappedTasks.map(task => {
+                paginatedAllTasks.map(task => {
+                  const dateNorm = task.startTime.replace(' ', 'T').split('T')[0];
+                  const [y, m, d] = dateNorm.split('-').map(Number);
+                  const dateFormatted = format(new Date(y, m - 1, d), "dd MMM yyyy", { locale: es });
+                  
                   const startDisplay = task.startTime.replace(' ', 'T').split('T')[1]?.substring(0, 5) || '';
                   const endDisplay = task.endTime.replace(' ', 'T').split('T')[1]?.substring(0, 5) || '';
                   
                   return (
                     <TableRow key={task.id} className="hover:bg-zinc-50/50 cursor-pointer" onClick={(e) => handleTaskClick(e, task as any)}>
+                      <TableCell className="font-medium text-zinc-700 capitalize whitespace-nowrap">
+                        {dateFormatted}
+                      </TableCell>
                       <TableCell className="font-mono text-sm text-zinc-600 whitespace-nowrap">
                         {startDisplay} - {endDisplay}
                       </TableCell>
@@ -395,6 +412,40 @@ export function CalendarView({ tasks, onTaskCreate, onTaskUpdate, onTaskDelete, 
             </TableBody>
           </Table>
         </div>
+
+        {/* Paginación */}
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 bg-white/50 p-4 rounded-2xl border border-zinc-200/60 shadow-sm">
+            <span className="text-sm text-zinc-500 font-medium">
+              Mostrando {(currentPage - 1) * ITEMS_PER_PAGE + 1} al {Math.min(currentPage * ITEMS_PER_PAGE, sortedAllTasks.length)} de {sortedAllTasks.length} tareas
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="bg-white rounded-xl"
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Anterior
+              </Button>
+              <div className="text-sm font-medium text-zinc-700 px-2 min-w-[100px] text-center">
+                Página {currentPage} de {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="bg-white rounded-xl"
+              >
+                Siguiente
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <TaskFormModal
