@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Plus, ShieldCheck } from 'lucide-react';
 import { Partner } from '@/hooks/usePartners';
 
 interface PartnerFormModalProps {
@@ -15,6 +16,16 @@ interface PartnerFormModalProps {
   isPending: boolean;
 }
 
+const APP_MODULES = [
+  { id: '/', label: 'Dashboard General' },
+  { id: '/calendar', label: 'Calendario y Tareas' },
+  { id: '/goals', label: 'Metas y Rendimiento' },
+  { id: '/compliance', label: 'Gestión de Cumplimiento' },
+  { id: '/finance', label: 'Finanzas y Transacciones' },
+  { id: '/clients', label: 'Directorio de Clientes' },
+  { id: '/diagnostic', label: 'Auditorías y Diagnósticos' },
+];
+
 export function PartnerFormModal({ partner, isOpen, onClose, onSubmit, isPending }: PartnerFormModalProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = isOpen !== undefined ? isOpen : internalOpen;
@@ -24,7 +35,9 @@ export function PartnerFormModal({ partner, isOpen, onClose, onSubmit, isPending
     role: '',
     phone: '',
     email: '',
-    status: 'Activo'
+    status: 'Activo',
+    systemRole: 'ADMIN',
+    accessibleTabs: [] as string[]
   });
 
   useEffect(() => {
@@ -34,10 +47,12 @@ export function PartnerFormModal({ partner, isOpen, onClose, onSubmit, isPending
         role: partner.role,
         phone: partner.phone || '',
         email: partner.email || '',
-        status: partner.status || 'Activo'
+        status: partner.status || 'Activo',
+        systemRole: partner.systemRole || 'ADMIN',
+        accessibleTabs: partner.accessibleTabs || []
       });
     } else {
-      setFormData({ name: '', role: '', phone: '', email: '', status: 'Activo' });
+      setFormData({ name: '', role: '', phone: '', email: '', status: 'Activo', systemRole: 'ADMIN', accessibleTabs: [] });
     }
   }, [partner, open]);
 
@@ -52,73 +67,113 @@ export function PartnerFormModal({ partner, isOpen, onClose, onSubmit, isPending
     if (isOpen === undefined) setInternalOpen(false);
   };
 
+  const toggleTab = (id: string, checked: boolean) => {
+    if (checked) {
+      setFormData({ ...formData, accessibleTabs: [...formData.accessibleTabs, id] });
+    } else {
+      setFormData({ ...formData, accessibleTabs: formData.accessibleTabs.filter(tab => tab !== id) });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {isOpen === undefined && (
         <DialogTrigger asChild>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20">
-            <Plus className="w-4 h-4 mr-2" /> Nuevo Socio
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 rounded-xl h-10 px-5">
+            <Plus className="w-4 h-4 mr-2" /> Agregar Personal
           </Button>
         </DialogTrigger>
       )}
-      <DialogContent className="sm:max-w-[425px] rounded-[2rem]">
+      <DialogContent className="sm:max-w-[550px] rounded-[2rem] max-h-[85vh] overflow-y-auto no-scrollbar">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">{partner ? 'Editar Socio' : 'Registrar Socio'}</DialogTitle>
+          <DialogTitle className="text-xl font-bold">{partner ? 'Editar Permisos y Datos' : 'Registrar Nuevo Miembro'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label>Nombre Completo *</Label>
-            <Input 
-              required 
-              value={formData.name} 
-              onChange={e => setFormData({...formData, name: e.target.value})}
-              className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Rol / Especialidad *</Label>
-            <Input 
-              required 
-              placeholder="Ej. Odontólogo, Asistente..."
-              value={formData.role} 
-              onChange={e => setFormData({...formData, role: e.target.value})}
-              className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Correo Electrónico</Label>
-            <Input 
-              type="email"
-              placeholder="correo@ejemplo.com"
-              value={formData.email} 
-              onChange={e => setFormData({...formData, email: e.target.value})}
-              className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+          
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-2 col-span-2 sm:col-span-1">
+              <Label>Nombre Completo *</Label>
+              <Input 
+                required 
+                value={formData.name} 
+                onChange={e => setFormData({...formData, name: e.target.value})}
+                className="bg-zinc-50 focus-visible:ring-blue-600/20" 
+              />
+            </div>
+            <div className="space-y-2 col-span-2 sm:col-span-1">
+              <Label>Rol / Puesto *</Label>
+              <Input 
+                required 
+                placeholder="Ej. Asistente Mkt"
+                value={formData.role} 
+                onChange={e => setFormData({...formData, role: e.target.value})}
+                className="bg-zinc-50 focus-visible:ring-blue-600/20" 
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+             <div className="space-y-2 col-span-2 sm:col-span-1">
+              <Label>Correo de Acceso (Importante)</Label>
+              <Input 
+                type="email"
+                placeholder="correo@ejemplo.com"
+                value={formData.email} 
+                onChange={e => setFormData({...formData, email: e.target.value})}
+                className="bg-zinc-50 font-mono text-sm focus-visible:ring-blue-600/20" 
+              />
+              <p className="text-[10px] text-zinc-500 leading-tight">Este correo definirá su nivel de acceso cuando inicie sesión.</p>
+            </div>
+            <div className="space-y-2 col-span-2 sm:col-span-1">
               <Label>Teléfono</Label>
               <Input 
                 value={formData.phone} 
                 onChange={e => setFormData({...formData, phone: e.target.value})}
-                className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
+                className="bg-zinc-50 focus-visible:ring-blue-600/20" 
               />
             </div>
-            <div className="space-y-2">
-              <Label>Estado</Label>
-              <Select value={formData.status} onValueChange={v => setFormData({...formData, status: v})}>
-                <SelectTrigger className="focus:ring-blue-600/20">
-                  <SelectValue />
-                </SelectTrigger>
+          </div>
+
+          <div className="space-y-4 pt-4 border-t border-zinc-100">
+            <h4 className="font-bold text-zinc-900 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-blue-600" /> Control de Acceso (RBAC)
+            </h4>
+            
+            <div className="space-y-3">
+              <Label className="text-zinc-600">Nivel de Privilegios</Label>
+              <Select value={formData.systemRole} onValueChange={v => setFormData({...formData, systemRole: v})}>
+                <SelectTrigger className="bg-white"><SelectValue/></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Activo">Activo</SelectItem>
-                  <SelectItem value="Inactivo">Inactivo</SelectItem>
+                  <SelectItem value="ADMIN">Administrador (Acceso Limitado a Pestañas)</SelectItem>
+                  <SelectItem value="SUPERADMIN">Superadministrador (Acceso Total Global)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            {formData.systemRole === 'ADMIN' && (
+              <div className="bg-zinc-50/70 p-5 rounded-2xl border border-zinc-200/50 shadow-inner mt-4 animate-in fade-in duration-300">
+                <Label className="text-zinc-700 font-bold mb-4 block">Módulos Permitidos para este usuario</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {APP_MODULES.map(mod => (
+                    <div key={mod.id} className="flex items-center space-x-3 bg-white p-2.5 rounded-xl border border-zinc-100 shadow-sm hover:border-blue-200 transition-colors">
+                      <Switch 
+                        id={`switch-${mod.id}`}
+                        checked={formData.accessibleTabs.includes(mod.id)}
+                        onCheckedChange={(checked) => toggleTab(mod.id, checked)}
+                        className="data-[state=checked]:bg-emerald-500"
+                      />
+                      <Label htmlFor={`switch-${mod.id}`} className="font-medium text-sm cursor-pointer leading-tight w-full">
+                        {mod.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-11 mt-2" disabled={isPending}>
-            {isPending ? 'Guardando...' : 'Guardar Datos'}
+
+          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-12 mt-2 rounded-xl text-md shadow-lg shadow-blue-600/20" disabled={isPending}>
+            {isPending ? 'Guardando...' : 'Guardar y Asignar Permisos'}
           </Button>
         </form>
       </DialogContent>

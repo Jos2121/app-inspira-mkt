@@ -17,6 +17,7 @@ type SessionState = {
       email: string; 
       emailVerified: boolean; 
       role?: string;
+      accessibleTabs?: string[];
     };
   } | null;
   isPending: boolean;

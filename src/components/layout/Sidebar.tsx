@@ -12,8 +12,8 @@ export const navItems = [
   { icon: ShieldCheck, label: 'Cumplimiento', path: '/compliance' },
   { icon: Wallet, label: 'Finanzas', path: '/finance' },
   { icon: Users, label: 'Clientes', path: '/clients' },
-  { icon: UserSquare2, label: 'Staff / Socios', path: '/partners' },
   { icon: Activity, label: 'Diagnóstico', path: '/diagnostic' },
+  { icon: UserSquare2, label: 'Staff / Administradores', path: '/partners', adminOnly: true },
 ];
 
 interface SidebarProps {
@@ -23,7 +23,7 @@ interface SidebarProps {
   setIsCollapsed: (val: boolean) => void;
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (val: boolean) => void;
-  user: { name: string; email: string };
+  user: { name: string; email: string; accessibleTabs?: string[] };
 }
 
 export function Sidebar({ 
@@ -36,7 +36,21 @@ export function Sidebar({
   user
 }: SidebarProps) {
   const location = useLocation();
-  const items = navItems.filter(item => !(item as any).adminOnly || isAdmin);
+  
+  // RBAC Lógica de Renderizado Dinámico
+  const accessibleTabs = user.accessibleTabs || [];
+  const isSuperadmin = role === 'SUPERADMIN' || accessibleTabs.includes('*');
+
+  const items = navItems.filter(item => {
+    // La pestaña de Staff solo la puede ver el Superadmin
+    if (item.adminOnly && !isSuperadmin) return false;
+    
+    // Si es superadmin ve todo
+    if (isSuperadmin) return true;
+    
+    // Si es Admin normal, ve solo lo que está en su array
+    return accessibleTabs.includes(item.path);
+  });
 
   return (
     <div className={cn(
@@ -74,7 +88,12 @@ export function Sidebar({
             isCollapsed ? "h-0 opacity-0" : "h-16 opacity-100"
           )}>
             <h2 className="font-bold text-xl text-zinc-900 tracking-tight whitespace-nowrap">Inspira Mkt</h2>
-            <div className="mt-3 px-3 py-1 bg-blue-50/80 border border-blue-200/50 text-blue-700 text-xs font-mono font-bold rounded-full uppercase tracking-widest whitespace-nowrap shadow-sm shadow-blue-500/5">
+            <div className={cn(
+              "mt-3 px-3 py-1 border text-xs font-mono font-bold rounded-full uppercase tracking-widest whitespace-nowrap shadow-sm",
+              isSuperadmin 
+                ? "bg-purple-50/80 border-purple-200/50 text-purple-700 shadow-purple-500/5"
+                : "bg-blue-50/80 border-blue-200/50 text-blue-700 shadow-blue-500/5"
+            )}>
               {role}
             </div>
           </div>

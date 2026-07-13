@@ -24,6 +24,35 @@ export default defineHandler(async (event) => {
   }
 
   const role = session.user.role || 'ADMIN';
+  const accessibleTabs = session.user.accessibleTabs || [];
+  const isSuperadmin = role === 'SUPERADMIN' || accessibleTabs.includes('*');
+
+  // RBAC por módulos API
+  if (!isSuperadmin) {
+    // Protección absoluta al módulo de staff/socios
+    if (pathname.startsWith('/api/partners')) {
+      throw createError({ statusCode: 403, statusMessage: 'No tienes permiso para gestionar el staff' });
+    }
+
+    const routeMap: Record<string, string> = {
+      '/api/dashboard': '/',
+      '/api/tasks': '/calendar',
+      '/api/goals': '/goals',
+      '/api/daily-logs': '/goals',
+      '/api/compliance': '/compliance',
+      '/api/plans': '/compliance',
+      '/api/transactions': '/finance',
+      '/api/clients': '/clients',
+      '/api/diagnostic': '/diagnostic',
+    };
+
+    for (const [apiPath, tabId] of Object.entries(routeMap)) {
+      if (pathname.startsWith(apiPath) && !accessibleTabs.includes(tabId) && !accessibleTabs.includes('/')) {
+        throw createError({ statusCode: 403, statusMessage: `No tienes permisos para acceder a este recurso.` });
+      }
+    }
+  }
+
   const method = event.method;
 
   if (method === 'DELETE') {

@@ -13,6 +13,8 @@ export default defineHandler(async (event) => {
     phone: body.phone,
     email: body.email,
     status: body.status || 'Activo',
+    systemRole: body.systemRole || 'ADMIN',
+    accessibleTabs: body.accessibleTabs || [],
   }).returning();
 
   return newPartner;

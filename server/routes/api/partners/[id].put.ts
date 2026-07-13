@@ -15,6 +15,8 @@ export default defineHandler(async (event) => {
     phone: body.phone,
     email: body.email,
     status: body.status,
+    systemRole: body.systemRole,
+    accessibleTabs: body.accessibleTabs,
   }).where(eq(partners.id, id)).returning();
 
   return updated;

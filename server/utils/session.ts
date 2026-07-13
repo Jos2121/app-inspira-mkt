@@ -1,5 +1,5 @@
 import { db } from './db';
-import { appRoles } from '../db/schema';
+import { appRoles, partners } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
 export type Session = {
@@ -9,6 +9,7 @@ export type Session = {
     email: string;
     emailVerified: boolean;
     role?: string;
+    accessibleTabs?: string[];
   };
 } | null;
 
@@ -33,13 +34,31 @@ export async function getSessionFromCookie(cookieHeader: string | null): Promise
     
     const session: Session = data;
     
-    // Buscar rol asociado al correo
+    let role = 'ADMIN';
+    let accessibleTabs: string[] = [];
+
+    // Validar si es superadmin raíz (semilla)
     const roleRecord = await db.select().from(appRoles).where(eq(appRoles.email, session.user.email)).limit(1);
     if (roleRecord.length > 0) {
-      session.user.role = roleRecord[0].role;
-    } else {
-      session.user.role = 'ADMIN';
+      role = roleRecord[0].role;
     }
+    
+    // Validar permisos si el correo está registrado como Staff/Socio
+    const partnerRecord = await db.select().from(partners).where(eq(partners.email, session.user.email)).limit(1);
+    if (partnerRecord.length > 0) {
+      if (role !== 'SUPERADMIN') {
+        role = partnerRecord[0].systemRole;
+      }
+      accessibleTabs = partnerRecord[0].accessibleTabs;
+    }
+
+    // Si es superadmin tiene acceso total
+    if (role === 'SUPERADMIN') {
+      accessibleTabs = ['*'];
+    }
+    
+    session.user.role = role;
+    session.user.accessibleTabs = accessibleTabs;
     
     return session;
   } catch (error) {

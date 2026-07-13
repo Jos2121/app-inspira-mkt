@@ -20,8 +20,8 @@ export default function Partners() {
     <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-zinc-900">Socios y Equipo</h2>
-          <p className="text-zinc-500 mt-1 font-medium">Gestiona tu staff médico y operativo.</p>
+          <h2 className="text-3xl font-bold tracking-tight text-zinc-900">Staff / Administradores</h2>
+          <p className="text-zinc-500 mt-1 font-medium">Gestiona tu equipo, roles y permisos de acceso (RBAC).</p>
         </div>
         <PartnerFormModal 
           onSubmit={(data) => createMutation.mutate(data)} 
@@ -33,7 +33,7 @@ export default function Partners() {
         <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
         <Input 
           placeholder="Buscar por nombre o rol..." 
-          className="pl-9 bg-white shadow-sm"
+          className="pl-9 bg-white shadow-sm focus-visible:ring-blue-600/20"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />

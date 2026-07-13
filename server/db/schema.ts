@@ -23,6 +23,8 @@ export const partners = pgTable('partners', {
   phone: text('phone'),
   email: text('email'),
   status: text('status').notNull().default('Activo'),
+  systemRole: text('system_role').notNull().default('ADMIN'),
+  accessibleTabs: jsonb('accessible_tabs').notNull().$type<string[]>().default([]),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 

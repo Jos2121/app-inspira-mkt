@@ -20,6 +20,24 @@ export function AppLayout() {
 
   const role = data.user.role || 'ADMIN';
   const isAdmin = role === 'ADMIN' || role === 'SUPERADMIN';
+  
+  // Lógica de Protección Frontend (RBAC)
+  const accessibleTabs = data.user.accessibleTabs || [];
+  const isSuperadmin = role === 'SUPERADMIN' || accessibleTabs.includes('*');
+  const currentPath = location.pathname;
+
+  if (!isSuperadmin) {
+    // Si intenta acceder a Staff/Partners y no es superadmin
+    if (currentPath.startsWith('/partners')) {
+      return <Navigate to={accessibleTabs[0] || '/'} replace />;
+    }
+
+    // Si intenta acceder a un tab al cual no tiene acceso
+    const hasAccess = accessibleTabs.some(tab => currentPath === tab || (tab !== '/' && currentPath.startsWith(tab)));
+    if (!hasAccess && accessibleTabs.length > 0) {
+      return <Navigate to={accessibleTabs[0] || '/'} replace />;
+    }
+  }
 
   return (
     <div className="h-screen w-full flex flex-col md:flex-row bg-zinc-50 overflow-hidden">

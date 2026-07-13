@@ -8,6 +8,8 @@ export type Partner = {
   phone: string | null;
   email: string | null;
   status: string;
+  systemRole: string;
+  accessibleTabs: string[];
   createdAt: string;
 };
 
@@ -39,7 +41,7 @@ export function useCreatePartner() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['partners'] });
-      toast.success('Socio registrado exitosamente');
+      toast.success('Administrador registrado exitosamente');
     },
     onError: (error) => toast.error(error.message)
   });
@@ -62,7 +64,7 @@ export function useUpdatePartner() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['partners'] });
-      toast.success('Socio actualizado exitosamente');
+      toast.success('Permisos actualizados exitosamente');
     },
     onError: (error) => toast.error(error.message)
   });
@@ -81,7 +83,7 @@ export function useDeletePartner() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['partners'] });
-      toast.success('Socio eliminado');
+      toast.success('Administrador eliminado');
     },
     onError: (error) => toast.error(error.message)
   });
