@@ -6,6 +6,7 @@ export type Partner = {
   name: string;
   role: string;
   phone: string | null;
+  email: string | null;
   status: string;
   createdAt: string;
 };

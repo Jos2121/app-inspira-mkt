@@ -13,6 +13,7 @@ export default defineHandler(async (event) => {
     name: body.name,
     role: body.role,
     phone: body.phone,
+    email: body.email,
     status: body.status,
   }).where(eq(partners.id, id)).returning();
 

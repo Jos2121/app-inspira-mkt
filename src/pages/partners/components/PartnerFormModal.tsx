@@ -23,6 +23,7 @@ export function PartnerFormModal({ partner, isOpen, onClose, onSubmit, isPending
     name: '',
     role: '',
     phone: '',
+    email: '',
     status: 'Activo'
   });
 
@@ -32,10 +33,11 @@ export function PartnerFormModal({ partner, isOpen, onClose, onSubmit, isPending
         name: partner.name,
         role: partner.role,
         phone: partner.phone || '',
+        email: partner.email || '',
         status: partner.status || 'Activo'
       });
     } else {
-      setFormData({ name: '', role: '', phone: '', status: 'Activo' });
+      setFormData({ name: '', role: '', phone: '', email: '', status: 'Activo' });
     }
   }, [partner, open]);
 
@@ -80,6 +82,16 @@ export function PartnerFormModal({ partner, isOpen, onClose, onSubmit, isPending
               placeholder="Ej. Odontólogo, Asistente..."
               value={formData.role} 
               onChange={e => setFormData({...formData, role: e.target.value})}
+              className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Correo Electrónico</Label>
+            <Input 
+              type="email"
+              placeholder="correo@ejemplo.com"
+              value={formData.email} 
+              onChange={e => setFormData({...formData, email: e.target.value})}
               className="focus-visible:ring-blue-600/20 focus-visible:border-blue-600" 
             />
           </div>

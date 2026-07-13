@@ -21,6 +21,7 @@ export const partners = pgTable('partners', {
   name: text('name').notNull(),
   role: text('role').notNull(),
   phone: text('phone'),
+  email: text('email'),
   status: text('status').notNull().default('Activo'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });

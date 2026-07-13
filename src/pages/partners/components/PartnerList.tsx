@@ -45,15 +45,16 @@ export function PartnerList({ partners, isLoading, onEdit, onDelete }: PartnerLi
             <TableRow className="bg-zinc-50/50">
               <TableHead>Nombre y Rol</TableHead>
               <TableHead>Contacto</TableHead>
+              <TableHead>Correo Electrónico</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={4} className="text-center py-8 text-zinc-500">Cargando socios...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center py-8 text-zinc-500">Cargando socios...</TableCell></TableRow>
             ) : partners.length === 0 ? (
-              <TableRow><TableCell colSpan={4} className="text-center py-8 text-zinc-500">No hay socios registrados</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center py-8 text-zinc-500">No hay socios registrados</TableCell></TableRow>
             ) : (
               paginatedPartners.map(partner => (
                 <TableRow key={partner.id} className="hover:bg-zinc-50/50 transition-colors">
@@ -62,6 +63,7 @@ export function PartnerList({ partners, isLoading, onEdit, onDelete }: PartnerLi
                     <div className="text-sm text-zinc-500">{partner.role}</div>
                   </TableCell>
                   <TableCell className="font-mono text-sm text-zinc-600">{partner.phone || '-'}</TableCell>
+                  <TableCell className="text-sm text-zinc-600">{partner.email || '-'}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className={partner.status === 'Activo' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-zinc-100 text-zinc-500'}>
                       {partner.status}
