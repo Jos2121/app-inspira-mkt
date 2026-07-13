@@ -35,6 +35,7 @@ export function PartnerFormModal({ partner, isOpen, onClose, onSubmit, isPending
     role: '',
     phone: '',
     email: '',
+    password: '',
     status: 'Activo',
     systemRole: 'ADMIN',
     accessibleTabs: [] as string[]
@@ -47,12 +48,13 @@ export function PartnerFormModal({ partner, isOpen, onClose, onSubmit, isPending
         role: partner.role,
         phone: partner.phone || '',
         email: partner.email || '',
+        password: '',
         status: partner.status || 'Activo',
         systemRole: partner.systemRole || 'ADMIN',
         accessibleTabs: partner.accessibleTabs || []
       });
     } else {
-      setFormData({ name: '', role: '', phone: '', email: '', status: 'Activo', systemRole: 'ADMIN', accessibleTabs: [] });
+      setFormData({ name: '', role: '', phone: '', email: '', password: '', status: 'Activo', systemRole: 'ADMIN', accessibleTabs: [] });
     }
   }, [partner, open]);
 
@@ -114,25 +116,55 @@ export function PartnerFormModal({ partner, isOpen, onClose, onSubmit, isPending
 
           <div className="grid grid-cols-2 gap-4">
              <div className="space-y-2 col-span-2 sm:col-span-1">
-              <Label>Correo de Acceso (Importante)</Label>
+              <Label>Correo de Acceso *</Label>
               <Input 
                 type="email"
+                required
                 placeholder="correo@ejemplo.com"
                 value={formData.email} 
                 onChange={e => setFormData({...formData, email: e.target.value})}
-                className="bg-zinc-50 font-mono text-sm focus-visible:ring-blue-600/20" 
+                disabled={!!partner}
+                className="bg-zinc-50 font-mono text-sm focus-visible:ring-blue-600/20 disabled:opacity-50" 
               />
-              <p className="text-[10px] text-zinc-500 leading-tight">Este correo definirá su nivel de acceso cuando inicie sesión.</p>
+              <p className="text-[10px] text-zinc-500 leading-tight">Este correo definirá su nivel de acceso.</p>
             </div>
-            <div className="space-y-2 col-span-2 sm:col-span-1">
-              <Label>Teléfono</Label>
+            
+            {!partner ? (
+              <div className="space-y-2 col-span-2 sm:col-span-1">
+                <Label>Contraseña de Acceso *</Label>
+                <Input 
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={formData.password} 
+                  onChange={e => setFormData({...formData, password: e.target.value})}
+                  className="bg-zinc-50 font-mono focus-visible:ring-blue-600/20" 
+                />
+                <p className="text-[10px] text-zinc-500 leading-tight">El usuario usará esta clave para ingresar.</p>
+              </div>
+            ) : (
+              <div className="space-y-2 col-span-2 sm:col-span-1">
+                <Label>Teléfono</Label>
+                <Input 
+                  value={formData.phone} 
+                  onChange={e => setFormData({...formData, phone: e.target.value})}
+                  className="bg-zinc-50 focus-visible:ring-blue-600/20" 
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Mostrar el teléfono en una fila aparte solo si estamos en modo creación */}
+          {!partner && (
+            <div className="space-y-2">
+              <Label>Teléfono (Opcional)</Label>
               <Input 
                 value={formData.phone} 
                 onChange={e => setFormData({...formData, phone: e.target.value})}
                 className="bg-zinc-50 focus-visible:ring-blue-600/20" 
               />
             </div>
-          </div>
+          )}
 
           <div className="space-y-4 pt-4 border-t border-zinc-100">
             <h4 className="font-bold text-zinc-900 flex items-center gap-2">

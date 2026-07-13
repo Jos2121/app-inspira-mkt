@@ -27,7 +27,7 @@ export function usePartners() {
 export function useCreatePartner() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Omit<Partner, 'id' | 'createdAt'>) => {
+    mutationFn: async (data: Omit<Partner, 'id' | 'createdAt'> & { password?: string }) => {
       const res = await fetch('/api/partners', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
