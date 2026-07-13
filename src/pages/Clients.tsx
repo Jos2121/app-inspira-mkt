@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuthSession } from '@/lib/auth-client';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { useClients, useCreateClient, useDeleteClient, useUpdateClient, Client } from '@/hooks/useClients';
@@ -8,8 +8,8 @@ import { ClientFormModal } from './clients/components/ClientFormModal';
 import { EditClientModal } from './clients/components/EditClientModal';
 
 export default function Clients() {
-  const { data: session } = useAuthSession();
-  const isAdmin = session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPERADMIN';
+  const { data: profile } = useUserProfile();
+  const isAdmin = profile?.role === 'ADMIN' || profile?.role === 'SUPERADMIN';
   
   const [search, setSearch] = useState('');
   const [editingClient, setEditingClient] = useState<Client | null>(null);

@@ -1,28 +1,37 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthSession } from '@/lib/auth-client';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { MobileHeader } from './MobileHeader';
 
 export function AppLayout() {
-  const { data, isPending } = useAuthSession();
+  const { data: session, isPending: sessionPending } = useAuthSession();
+  const { data: profile, isLoading: profilePending } = useUserProfile();
+  
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  if (isPending) {
-    return <div className="h-screen w-full flex items-center justify-center bg-zinc-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-zinc-900"></div></div>;
+  // Esperar a que la sesión y los permisos de base de datos carguen
+  if (sessionPending || (session?.user && profilePending)) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-zinc-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+        <p className="text-zinc-500 font-medium">Validando accesos...</p>
+      </div>
+    );
   }
 
-  if (!data?.user) {
+  if (!session?.user) {
     return <Navigate to="/auth/sign-in" state={{ from: location }} replace />;
   }
 
-  const role = data.user.role || 'ADMIN';
+  const role = profile?.role || 'ADMIN';
   const isAdmin = role === 'ADMIN' || role === 'SUPERADMIN';
   
-  // Lógica de Protección Frontend (RBAC)
-  const accessibleTabs = data.user.accessibleTabs || [];
+  // Lógica de Protección Frontend (RBAC) con los datos del backend
+  const accessibleTabs = profile?.accessibleTabs || [];
   const isSuperadmin = role === 'SUPERADMIN' || accessibleTabs.includes('*');
   const currentPath = location.pathname;
 
@@ -39,6 +48,13 @@ export function AppLayout() {
     }
   }
 
+  const userCombined = {
+    name: session.user.name,
+    email: session.user.email,
+    role: role,
+    accessibleTabs: accessibleTabs
+  };
+
   return (
     <div className="h-screen w-full flex flex-col md:flex-row bg-zinc-50 overflow-hidden">
       <MobileHeader 
@@ -53,7 +69,7 @@ export function AppLayout() {
         setIsCollapsed={setIsCollapsed}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
-        user={data.user}
+        user={userCombined}
       />
 
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden md:py-4 md:pr-4 transition-all duration-300">
