@@ -140,7 +140,7 @@ export function PartnerFormModal({ partner, isOpen, onClose, onSubmit, isPending
                   onChange={e => setFormData({...formData, password: e.target.value})}
                   className="bg-zinc-50 font-mono focus-visible:ring-blue-600/20" 
                 />
-                <p className="text-[10px] text-zinc-500 leading-tight">El usuario usará esta clave para ingresar.</p>
+                <p className="text-[10px] text-amber-600 font-medium leading-tight">Debe contener mínimo 8 caracteres.</p>
               </div>
             ) : (
               <div className="space-y-2 col-span-2 sm:col-span-1">
