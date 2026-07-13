@@ -23,7 +23,7 @@ export default defineHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
   }
 
-  const role = session.user.role || 'EMPLEADO';
+  const role = session.user.role || 'ADMIN';
   const method = event.method;
 
   if (method === 'DELETE') {

@@ -41,8 +41,7 @@ export function AuthPage() {
     setLoading(true);
     const users = [
       { e: 'prueba01@gmail.com', n: 'Super Administrador' },
-      { e: 'prueba02@gmail.com', n: 'Administrador' },
-      { e: 'prueba03@gmail.com', n: 'Empleado Test' }
+      { e: 'prueba02@gmail.com', n: 'Administrador' }
     ];
     
     let created = 0;
@@ -87,7 +86,7 @@ export function AuthPage() {
             <p className="text-zinc-500 text-sm font-medium">
               {path === 'sign-in' 
                 ? 'Ingresa tu correo electrónico para continuar' 
-                : 'Regístrate como empleado o administrador'}
+                : 'Regístrate en el sistema'}
             </p>
           </div>
           

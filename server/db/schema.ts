@@ -1,7 +1,7 @@
 import { pgTable, text, timestamp, numeric, uuid, integer, jsonb, pgEnum } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-export const roleEnum = pgEnum('role_enum', ['SUPERADMIN', 'ADMIN', 'EMPLEADO']);
+export const roleEnum = pgEnum('role_enum', ['SUPERADMIN', 'ADMIN']);
 
 export const clients = pgTable('clients', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -13,7 +13,7 @@ export const clients = pgTable('clients', {
 
 export const appRoles = pgTable('app_roles', {
   email: text('email').primaryKey(),
-  role: roleEnum('role').notNull().default('EMPLEADO'),
+  role: roleEnum('role').notNull().default('ADMIN'),
 });
 
 export const partners = pgTable('partners', {

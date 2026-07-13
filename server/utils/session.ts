@@ -38,7 +38,7 @@ export async function getSessionFromCookie(cookieHeader: string | null): Promise
     if (roleRecord.length > 0) {
       session.user.role = roleRecord[0].role;
     } else {
-      session.user.role = 'EMPLEADO';
+      session.user.role = 'ADMIN';
     }
     
     return session;

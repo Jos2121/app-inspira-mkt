@@ -6,8 +6,7 @@ export default async function() {
   try {
     const rolesToSeed = [
       { email: 'prueba01@gmail.com', role: 'SUPERADMIN' as const },
-      { email: 'prueba02@gmail.com', role: 'ADMIN' as const },
-      { email: 'prueba03@gmail.com', role: 'EMPLEADO' as const }
+      { email: 'prueba02@gmail.com', role: 'ADMIN' as const }
     ];
 
     for (const r of rolesToSeed) {

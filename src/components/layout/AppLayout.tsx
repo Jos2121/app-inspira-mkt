@@ -18,7 +18,7 @@ export function AppLayout() {
     return <Navigate to="/auth/sign-in" state={{ from: location }} replace />;
   }
 
-  const role = data.user.role || 'EMPLEADO';
+  const role = data.user.role || 'ADMIN';
   const isAdmin = role === 'ADMIN' || role === 'SUPERADMIN';
 
   return (
