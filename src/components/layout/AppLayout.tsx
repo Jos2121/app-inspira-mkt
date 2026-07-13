@@ -4,6 +4,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { MobileHeader } from './MobileHeader';
+import { ShieldAlert } from 'lucide-react';
 
 export function AppLayout() {
   const { data: session, isPending: sessionPending } = useAuthSession();
@@ -36,15 +37,13 @@ export function AppLayout() {
   const currentPath = location.pathname;
 
   if (!isSuperadmin) {
-    // Si intenta acceder a Staff/Partners y no es superadmin
-    if (currentPath.startsWith('/partners')) {
-      return <Navigate to={accessibleTabs[0] || '/'} replace />;
-    }
-
-    // Si intenta acceder a un tab al cual no tiene acceso
-    const hasAccess = accessibleTabs.some(tab => currentPath === tab || (tab !== '/' && currentPath.startsWith(tab)));
-    if (!hasAccess && accessibleTabs.length > 0) {
-      return <Navigate to={accessibleTabs[0] || '/'} replace />;
+    // Si el usuario tiene pestañas asignadas pero intenta acceder a una ruta que no le corresponde
+    if (accessibleTabs.length > 0) {
+      const hasAccess = accessibleTabs.some(tab => currentPath === tab || (tab !== '/' && currentPath.startsWith(tab)));
+      if (!hasAccess) {
+        // Lo redirigimos a la primera pestaña a la que sí tenga acceso
+        return <Navigate to={accessibleTabs[0]} replace />;
+      }
     }
   }
 
@@ -75,7 +74,21 @@ export function AppLayout() {
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden md:py-4 md:pr-4 transition-all duration-300">
         <div className="h-full flex flex-col glass rounded-none md:rounded-3xl overflow-hidden relative">
           <main className="flex-1 overflow-y-auto p-4 md:p-10">
-            <Outlet />
+            {/* Si NO es superadmin y NO tiene NINGÚN módulo asignado, mostramos bloqueo total */}
+            {!isSuperadmin && accessibleTabs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-[80vh] text-center max-w-md mx-auto animate-in fade-in duration-500">
+                <div className="w-24 h-24 bg-zinc-100 rounded-full flex items-center justify-center mb-6 border border-zinc-200 shadow-sm">
+                  <ShieldAlert className="w-12 h-12 text-zinc-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-zinc-900 tracking-tight">Acceso Restringido</h2>
+                <p className="text-zinc-500 mt-3 font-medium leading-relaxed">
+                  Tu cuenta ha sido creada correctamente, pero aún no tienes ningún módulo asignado. 
+                  Contacta al superadministrador para que te brinde los permisos necesarios.
+                </p>
+              </div>
+            ) : (
+              <Outlet />
+            )}
           </main>
         </div>
       </div>
