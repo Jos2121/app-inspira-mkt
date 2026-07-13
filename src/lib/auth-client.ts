@@ -17,7 +17,6 @@ type SessionState = {
       email: string; 
       emailVerified: boolean; 
       role?: string;
-      whatsapp?: string; 
     };
   } | null;
   isPending: boolean;

@@ -34,5 +34,5 @@ export default defineHandler(async (event) => {
   
   event.context.userId = session.user.id;
   event.context.userRole = role;
-  event.context.userWhatsapp = session.user.whatsapp;
+  event.context.userEmail = session.user.email;
 });

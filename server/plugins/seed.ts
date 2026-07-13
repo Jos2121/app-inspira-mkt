@@ -5,14 +5,14 @@ export default async function() {
   console.log('[Seed] Verificando roles de prueba en base de datos...');
   try {
     const rolesToSeed = [
-      { whatsapp: '+51999000001', role: 'SUPERADMIN' as const },
-      { whatsapp: '+51999000002', role: 'ADMIN' as const },
-      { whatsapp: '+51999000003', role: 'EMPLEADO' as const }
+      { email: 'prueba01@gmail.com', role: 'SUPERADMIN' as const },
+      { email: 'prueba02@gmail.com', role: 'ADMIN' as const },
+      { email: 'prueba03@gmail.com', role: 'EMPLEADO' as const }
     ];
 
     for (const r of rolesToSeed) {
       await db.insert(appRoles).values(r)
-        .onConflictDoUpdate({ target: appRoles.whatsapp, set: { role: r.role } });
+        .onConflictDoUpdate({ target: appRoles.email, set: { role: r.role } });
     }
     console.log('[Seed] Roles insertados correctamente.');
   } catch (e) {

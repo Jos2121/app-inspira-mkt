@@ -32,7 +32,7 @@ export function UserMenu() {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{data.user.name}</p>
             <p className="text-xs leading-none text-muted-foreground font-mono mt-1">
-              {data.user.whatsapp || data.user.email}
+              {data.user.email}
             </p>
           </div>
         </DropdownMenuLabel>

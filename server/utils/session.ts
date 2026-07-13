@@ -9,7 +9,6 @@ export type Session = {
     email: string;
     emailVerified: boolean;
     role?: string;
-    whatsapp?: string;
   };
 } | null;
 
@@ -34,11 +33,8 @@ export async function getSessionFromCookie(cookieHeader: string | null): Promise
     
     const session: Session = data;
     
-    // Extraer WhatsApp del correo falso utilizado para autenticar (ej. +51999000001@inspira.local)
-    const whatsapp = session.user.email.split('@')[0];
-    session.user.whatsapp = whatsapp;
-    
-    const roleRecord = await db.select().from(appRoles).where(eq(appRoles.whatsapp, whatsapp)).limit(1);
+    // Buscar rol asociado al correo
+    const roleRecord = await db.select().from(appRoles).where(eq(appRoles.email, session.user.email)).limit(1);
     if (roleRecord.length > 0) {
       session.user.role = roleRecord[0].role;
     } else {

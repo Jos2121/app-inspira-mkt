@@ -5,13 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Phone, Lock, User, ShieldAlert } from 'lucide-react';
+import { Mail, Lock, User, ShieldAlert } from 'lucide-react';
 import './auth.css';
 
 export function AuthPage() {
   const { path = 'sign-in' } = useParams();
   const navigate = useNavigate();
-  const [whatsapp, setWhatsapp] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,17 +20,14 @@ export function AuthPage() {
     e.preventDefault();
     setLoading(true);
 
-    const cleanWhatsapp = whatsapp.replace(/\s+/g, '');
-    const fakeEmail = `${cleanWhatsapp}@inspira.local`;
-
     try {
       if (path === 'sign-in') {
-        await authClient.signIn.email({ email: fakeEmail, password }, {
+        await authClient.signIn.email({ email, password }, {
           onSuccess: () => navigate('/'),
           onError: (ctx) => toast.error(ctx.error.message)
         });
       } else {
-        await authClient.signUp.email({ email: fakeEmail, password, name }, {
+        await authClient.signUp.email({ email, password, name }, {
           onSuccess: () => navigate('/'),
           onError: (ctx) => toast.error(ctx.error.message)
         });
@@ -43,16 +40,16 @@ export function AuthPage() {
   const generateTestCredentials = async () => {
     setLoading(true);
     const users = [
-      { w: '+51999000001', n: 'Super Administrador' },
-      { w: '+51999000002', n: 'Administrador' },
-      { w: '+51999000003', n: 'Empleado Test' }
+      { e: 'prueba01@gmail.com', n: 'Super Administrador' },
+      { e: 'prueba02@gmail.com', n: 'Administrador' },
+      { e: 'prueba03@gmail.com', n: 'Empleado Test' }
     ];
     
     let created = 0;
     for (const u of users) {
        try {
          await authClient.signUp.email({
-           email: `${u.w}@inspira.local`,
+           email: u.e,
            password: 'Prueba123!',
            name: u.n
          });
@@ -89,7 +86,7 @@ export function AuthPage() {
             </h1>
             <p className="text-zinc-500 text-sm font-medium">
               {path === 'sign-in' 
-                ? 'Ingresa tu número de WhatsApp para continuar' 
+                ? 'Ingresa tu correo electrónico para continuar' 
                 : 'Regístrate como empleado o administrador'}
             </p>
           </div>
@@ -112,15 +109,16 @@ export function AuthPage() {
             )}
             
             <div className="space-y-2">
-              <Label>Número de WhatsApp</Label>
+              <Label>Correo Electrónico</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-3 h-5 w-5 text-zinc-400" />
+                <Mail className="absolute left-3 top-3 h-5 w-5 text-zinc-400" />
                 <Input 
-                  value={whatsapp} 
-                  onChange={e => setWhatsapp(e.target.value)} 
+                  type="email"
+                  value={email} 
+                  onChange={e => setEmail(e.target.value)} 
                   required 
-                  className="pl-10 h-12 rounded-xl font-mono" 
-                  placeholder="+51 999 000 000" 
+                  className="pl-10 h-12 rounded-xl" 
+                  placeholder="correo@ejemplo.com" 
                 />
               </div>
             </div>

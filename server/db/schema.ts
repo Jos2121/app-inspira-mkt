@@ -12,7 +12,7 @@ export const clients = pgTable('clients', {
 });
 
 export const appRoles = pgTable('app_roles', {
-  whatsapp: text('whatsapp').primaryKey(),
+  email: text('email').primaryKey(),
   role: roleEnum('role').notNull().default('EMPLEADO'),
 });
 
