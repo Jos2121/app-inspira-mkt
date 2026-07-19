@@ -1,19 +1,17 @@
 import { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { authClient } from '@/lib/auth-client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Mail, Lock, User } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 import './auth.css';
 
 export function AuthPage() {
-  const { path = 'sign-in' } = useParams();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,17 +19,10 @@ export function AuthPage() {
     setLoading(true);
 
     try {
-      if (path === 'sign-in') {
-        await authClient.signIn.email({ email, password }, {
-          onSuccess: () => navigate('/'),
-          onError: (ctx) => toast.error(ctx.error.message)
-        });
-      } else {
-        await authClient.signUp.email({ email, password, name }, {
-          onSuccess: () => navigate('/'),
-          onError: (ctx) => toast.error(ctx.error.message)
-        });
-      }
+      await authClient.signIn.email({ email, password }, {
+        onSuccess: () => navigate('/'),
+        onError: (ctx) => toast.error(ctx.error.message)
+      });
     } finally {
       setLoading(false);
     }
@@ -52,32 +43,14 @@ export function AuthPage() {
         <div className="bg-white/80 backdrop-blur-xl border border-zinc-200/60 p-8 sm:p-10 rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)]">
           <div className="mb-8 text-center space-y-2">
             <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">
-              {path === 'sign-in' ? 'Acceso al Sistema' : 'Crear Cuenta'}
+              Acceso al Sistema
             </h1>
             <p className="text-zinc-500 text-sm font-medium">
-              {path === 'sign-in' 
-                ? 'Ingresa tu correo electrónico para continuar' 
-                : 'Regístrate en el sistema'}
+              Ingresa tu correo electrónico y contraseña para continuar
             </p>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-4">
-            {path === 'sign-up' && (
-              <div className="space-y-2">
-                <Label>Nombre Completo</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 h-5 w-5 text-zinc-400" />
-                  <Input 
-                    value={name} 
-                    onChange={e => setName(e.target.value)} 
-                    required 
-                    className="pl-10 h-12 rounded-xl" 
-                    placeholder="Ej. Juan Pérez" 
-                  />
-                </div>
-              </div>
-            )}
-            
             <div className="space-y-2">
               <Label>Correo Electrónico</Label>
               <div className="relative">
@@ -109,27 +82,9 @@ export function AuthPage() {
             </div>
 
             <Button type="submit" disabled={loading} className="w-full h-12 mt-2 bg-blue-600 hover:bg-blue-700 rounded-xl text-md font-bold shadow-lg shadow-blue-600/20">
-              {loading ? 'Procesando...' : (path === 'sign-in' ? 'Ingresar' : 'Registrarse')}
+              {loading ? 'Ingresando...' : 'Ingresar'}
             </Button>
           </form>
-
-          <div className="mt-8 text-center text-sm text-zinc-500 font-medium">
-            {path === 'sign-in' ? (
-              <p>
-                ¿No tienes cuenta?{' '}
-                <Link to="/auth/sign-up" className="text-blue-600 hover:text-blue-700 font-bold transition-colors">
-                  Regístrate aquí
-                </Link>
-              </p>
-            ) : (
-              <p>
-                ¿Ya tienes una cuenta?{' '}
-                <Link to="/auth/sign-in" className="text-blue-600 hover:text-blue-700 font-bold transition-colors">
-                  Inicia Sesión
-                </Link>
-              </p>
-            )}
-          </div>
         </div>
       </div>
     </div>
