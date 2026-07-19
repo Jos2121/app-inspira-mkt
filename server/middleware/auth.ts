@@ -26,12 +26,13 @@ export default defineHandler(async (event) => {
   const role = session.user.role || 'ADMIN';
   const accessibleTabs = session.user.accessibleTabs || [];
   const isSuperadmin = role === 'SUPERADMIN' || accessibleTabs.includes('*');
+  const method = event.method;
 
   // RBAC por módulos API
   if (!isSuperadmin) {
-    // Protección absoluta al módulo de staff/socios
-    if (pathname.startsWith('/api/partners')) {
-      throw createError({ statusCode: 403, statusMessage: 'No tienes permiso para gestionar el staff' });
+    // Permitir lectura (GET) de staff para dropdowns de tareas, bloquear modificaciones (POST, PUT, DELETE)
+    if (pathname.startsWith('/api/partners') && method !== 'GET') {
+      throw createError({ statusCode: 403, statusMessage: 'No tienes permiso para modificar el staff' });
     }
 
     const routeMap: Record<string, string> = {
@@ -52,8 +53,6 @@ export default defineHandler(async (event) => {
       }
     }
   }
-
-  const method = event.method;
 
   if (method === 'DELETE') {
     if (role !== 'SUPERADMIN' && role !== 'ADMIN') {
