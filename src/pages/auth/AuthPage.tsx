@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Mail, Lock, User, ShieldAlert } from 'lucide-react';
+import { Mail, Lock, User } from 'lucide-react';
 import './auth.css';
 
 export function AuthPage() {
@@ -35,35 +35,6 @@ export function AuthPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const generateTestCredentials = async () => {
-    setLoading(true);
-    const users = [
-      { e: 'prueba01@gmail.com', n: 'Super Administrador' },
-      { e: 'prueba02@gmail.com', n: 'Administrador' }
-    ];
-    
-    let created = 0;
-    for (const u of users) {
-       try {
-         await authClient.signUp.email({
-           email: u.e,
-           password: 'Prueba123!',
-           name: u.n
-         });
-         created++;
-       } catch (err) {
-         // Silently ignore if already exists
-       }
-    }
-    
-    if (created > 0) {
-      toast.success("Credenciales de prueba generadas exitosamente.");
-    } else {
-      toast.info("Las credenciales ya existían previamente.");
-    }
-    setLoading(false);
   };
 
   return (
@@ -160,13 +131,6 @@ export function AuthPage() {
             )}
           </div>
         </div>
-      </div>
-
-      <div className="mt-12">
-        <Button variant="outline" onClick={generateTestCredentials} disabled={loading} className="border-amber-200 text-amber-700 hover:bg-amber-50 rounded-xl bg-white/50 backdrop-blur-sm">
-          <ShieldAlert className="w-4 h-4 mr-2" />
-          Generar Credenciales de Prueba
-        </Button>
       </div>
     </div>
   );
