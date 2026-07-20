@@ -8,51 +8,72 @@ export default defineHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Datos insuficientes para el análisis' });
   }
 
-  /*
-   * =========================================================================
-   * INTEGRACIÓN GOOGLE CLOUD VERTEX AI (Instrucciones)
-   * =========================================================================
-   * 1. Instala el SDK en el servidor: `npm install @google-cloud/vertexai`
-   * 2. Configura tu Service Account JSON estableciendo la variable de entorno:
-   *    GOOGLE_APPLICATION_CREDENTIALS=/ruta/absoluta/a/tu-llave.json
-   * 3. Descomenta y ajusta el siguiente código:
-   * 
-   * import { VertexAI } from '@google-cloud/vertexai';
-   * const vertex_ai = new VertexAI({ project: 'TU_PROYECTO_ID', location: 'us-central1' });
-   * const model = vertex_ai.getGenerativeModel({ model: 'gemini-1.5-pro' });
-   * 
-   * const prompt = `
-   *   Actúa como un auditor experto en clínicas. Genera un informe profesional 
-   *   para el prospecto ${body.prospectName}. Estos son los resultados de su evaluación:
-   *   ${JSON.stringify(body.results, null, 2)}
-   *   Menciona los puntos críticos (< 5) y sugiere un plan de acción para solucionarlos.
-   * `;
-   * 
-   * const resp = await model.generateContent(prompt);
-   * const generatedText = resp.response.candidates[0].content.parts[0].text;
-   * return { report: generatedText };
-   * =========================================================================
-   */
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const model = process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini';
 
-  // --- SIMULACIÓN DE CARGA Y RESPUESTA (Mock) ---
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  if (!apiKey) {
+    throw createError({ statusCode: 500, message: 'Falta configurar OPENROUTER_API_KEY en el entorno' });
+  }
 
   const criticalPoints = Object.entries(body.results)
     .filter(([_, data]: any) => data.score <= 4)
-    .map(([q, data]: any) => `- **${q}**: Calif (${data.score}/10). Obs: *${data.observation || 'Sin observaciones'}*`);
+    .map(([q, data]: any) => `- ${q}: Calif (${data.score}/10). Obs: ${data.observation || 'Sin observaciones'}`)
+    .join('\n');
 
-  const report = `
-# Informe de Auditoría Operativa
-**Prospecto:** ${body.prospectName}
+  const allResults = Object.entries(body.results)
+    .map(([q, data]: any) => `- ${q}: Calif (${data.score}/10). Obs: ${data.observation || 'Sin observaciones'}`)
+    .join('\n');
 
-Hemos analizado detalladamente los procesos actuales de su clínica/negocio, detectando importantes oportunidades de mejora que le permitirán escalar su facturación.
+  const prompt = `
+Actúa como un auditor experto en clínicas. Genera un informe profesional y detallado 
+para el prospecto "${body.prospectName}". 
 
-### Áreas Críticas Detectadas
-${criticalPoints.length > 0 ? criticalPoints.join('\n') : 'No se detectaron puntos críticos severos, sin embargo hay espacio para optimización.'}
+Estos son todos los resultados de su evaluación:
+${allResults}
 
-### Conclusión y Plan de Acción
-Para abordar estas deficiencias, recomendamos implementar un plan estructurado de gestión y marketing que estandarice la captación de leads y garantice un seguimiento automatizado, cerrando así la fuga actual de clientes potenciales.
+Estos son los puntos críticos detectados (calificación <= 4):
+${criticalPoints.length > 0 ? criticalPoints : 'Ninguno.'}
+
+El informe debe usar formato Markdown (con títulos, viñetas, negritas, etc). 
+Estructura el informe de la siguiente manera:
+1. Un resumen ejecutivo amigable de 1-2 párrafos.
+2. Análisis de los Puntos Fuertes (calificaciones altas).
+3. Análisis de las Áreas Críticas o de Mejora.
+4. Un Plan de Acción estructurado y concreto para escalar la facturación y mejorar los procesos, priorizando las áreas críticas si las hay.
+
+Usa un tono profesional, empático y orientado a resultados de negocio.
   `.trim();
 
-  return { report };
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: 'user', content: prompt }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OpenRouter API Error:', errorText);
+      throw createError({ statusCode: response.status, message: 'Error al comunicarse con la IA (OpenRouter)' });
+    }
+
+    const data = await response.json();
+    const generatedText = data.choices?.[0]?.message?.content || 'No se generó reporte.';
+
+    return { report: generatedText };
+  } catch (error: any) {
+    console.error('IA generation error:', error);
+    throw createError({ 
+      statusCode: error.statusCode || 500, 
+      message: error.message || 'Error interno al generar el diagnóstico' 
+    });
+  }
 });
