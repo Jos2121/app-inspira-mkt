@@ -19,8 +19,8 @@ export function AuthPage() {
 
     try {
       await authClient.signIn.email({ email, password }, {
-        onSuccess: () => navigate('/'),
-        onError: (ctx) => toast.error(ctx.error.message)
+        onSuccess: () => { navigate('/'); },
+        onError: (ctx) => { toast.error(ctx.error.message); }
       });
     } finally {
       setLoading(false);
