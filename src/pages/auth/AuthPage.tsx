@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Mail, Lock } from 'lucide-react';
-import './auth.css';
 
 export function AuthPage() {
   const navigate = useNavigate();
