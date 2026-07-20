@@ -8,51 +8,71 @@ export default defineHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Datos insuficientes para el análisis' });
   }
 
-  /*
-   * =========================================================================
-   * INTEGRACIÓN GOOGLE CLOUD VERTEX AI (Instrucciones)
-   * =========================================================================
-   * 1. Instala el SDK en el servidor: `npm install @google-cloud/vertexai`
-   * 2. Configura tu Service Account JSON estableciendo la variable de entorno:
-   *    GOOGLE_APPLICATION_CREDENTIALS=/ruta/absoluta/a/tu-llave.json
-   * 3. Descomenta y ajusta el siguiente código:
-   * 
-   * import { VertexAI } from '@google-cloud/vertexai';
-   * const vertex_ai = new VertexAI({ project: 'TU_PROYECTO_ID', location: 'us-central1' });
-   * const model = vertex_ai.getGenerativeModel({ model: 'gemini-1.5-pro' });
-   * 
-   * const prompt = `
-   *   Actúa como un auditor experto en clínicas. Genera un informe profesional 
-   *   para el prospecto ${body.prospectName}. Estos son los resultados de su evaluación:
-   *   ${JSON.stringify(body.results, null, 2)}
-   *   Menciona los puntos críticos (< 5) y sugiere un plan de acción para solucionarlos.
-   * `;
-   * 
-   * const resp = await model.generateContent(prompt);
-   * const generatedText = resp.response.candidates[0].content.parts[0].text;
-   * return { report: generatedText };
-   * =========================================================================
-   */
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const model = process.env.OPENROUTER_MODEL || 'anthropic/claude-3.5-sonnet'; 
+  const siteUrl = process.env.VITE_APP_URL || 'http://localhost:5173';
+  const siteName = 'Inspira Mkt';
 
-  // --- SIMULACIÓN DE CARGA Y RESPUESTA (Mock) ---
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  // Si no hay API Key de OpenRouter, usamos un mock temporal para no romper la app en desarrollo
+  if (!apiKey) {
+    console.warn("Falta OPENROUTER_API_KEY. Usando datos simulados (mock).");
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    
+    const criticalPoints = Object.entries(body.results)
+      .filter(([_, data]: any) => data.score <= 4)
+      .map(([q, data]: any) => `- **${q}**: Calif (${data.score}/10). Obs: *${data.observation || 'Sin observaciones'}*`);
 
-  const criticalPoints = Object.entries(body.results)
-    .filter(([_, data]: any) => data.score <= 4)
-    .map(([q, data]: any) => `- **${q}**: Calif (${data.score}/10). Obs: *${data.observation || 'Sin observaciones'}*`);
+    return { 
+      report: `# Informe de Auditoría Operativa (Simulado)\n**Prospecto:** ${body.prospectName}\n\n### Áreas Críticas Detectadas\n${criticalPoints.length > 0 ? criticalPoints.join('\n') : 'No se detectaron puntos críticos severos.'}\n\n*Nota: Para generar un reporte real con Inteligencia Artificial, debes configurar la variable OPENROUTER_API_KEY en tu entorno.*` 
+    };
+  }
 
-  const report = `
-# Informe de Auditoría Operativa
-**Prospecto:** ${body.prospectName}
+  const prompt = `
+    Actúa como un auditor experto en clínicas. Genera un informe profesional 
+    para el prospecto ${body.prospectName}. Estos son los resultados de su evaluación operativa:
+    ${JSON.stringify(body.results, null, 2)}
+    
+    Menciona los puntos críticos (calificación menor a 5) y sugiere un plan de acción para solucionarlos.
+    Devuelve tu respuesta formateada en Markdown puro. No incluyas saludos iniciales ni texto innecesario, ve directo al informe.
+  `;
 
-Hemos analizado detalladamente los procesos actuales de su clínica/negocio, detectando importantes oportunidades de mejora que le permitirán escalar su facturación.
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': siteUrl,
+        'X-Title': siteName,
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+      })
+    });
 
-### Áreas Críticas Detectadas
-${criticalPoints.length > 0 ? criticalPoints.join('\n') : 'No se detectaron puntos críticos severos, sin embargo hay espacio para optimización.'}
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Error de OpenRouter:', errorData);
+      throw createError({ statusCode: response.status, message: 'Error al generar el diagnóstico con IA' });
+    }
 
-### Conclusión y Plan de Acción
-Para abordar estas deficiencias, recomendamos implementar un plan estructurado de gestión y marketing que estandarice la captación de leads y garantice un seguimiento automatizado, cerrando así la fuga actual de clientes potenciales.
-  `.trim();
+    const data = await response.json();
+    const generatedText = data.choices[0].message.content;
 
-  return { report };
+    return { report: generatedText };
+
+  } catch (error: any) {
+    console.error("Error en API de Diagnóstico:", error);
+    throw createError({ 
+      statusCode: error.statusCode || 500, 
+      message: error.message || 'Error interno al comunicarse con la IA' 
+    });
+  }
 });

@@ -8,11 +8,12 @@ export default defineHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'DNI inválido' });
   }
 
-  // Token fallback por defecto, idealmente lee de process.env.APIS_PERU_TOKEN
+  // Se utilizan variables de entorno, con un fallback por defecto para desarrollo
+  const baseUrl = process.env.APIS_PERU_BASE_URL || 'https://dniruc.apisperu.com/api/v1/dni';
   const token = process.env.APIS_PERU_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImNvYXF1aXJhXzIwMTJAaG90bWFpbC5jb20ifQ.1Yrd6W28ZZhpdUbX6Gx06pua0HwoJdAlCSYGUSNVgdc';
 
   try {
-    const response = await fetch(`https://dniruc.apisperu.com/api/v1/dni/${dni}`, {
+    const response = await fetch(`${baseUrl}/${dni}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json'
