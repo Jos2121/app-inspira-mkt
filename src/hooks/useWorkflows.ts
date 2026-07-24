@@ -3,24 +3,17 @@ import { toast } from 'sonner';
 
 export type WorkflowTask = {
   id: string;
-  columnId: string;
+  workflowId: string;
+  partnerId: string | null;
   content: string;
   orderIndex: number;
-};
-
-export type WorkflowColumn = {
-  id: string;
-  workflowId: string;
-  title: string;
-  orderIndex: number;
-  tasks: WorkflowTask[];
 };
 
 export type Workflow = {
   id: string;
   name: string;
   createdAt: string;
-  columns: WorkflowColumn[];
+  tasks: WorkflowTask[];
 };
 
 export function useWorkflows() {
@@ -70,26 +63,10 @@ export function useDeleteWorkflow() {
   });
 }
 
-export function useCreateColumn() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (data: { workflowId: string; title: string; orderIndex: number }) => {
-      const res = await fetch('/api/workflows/columns', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error('Error al crear columna');
-      return res.json();
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workflows'] })
-  });
-}
-
 export function useCreateTask() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { columnId: string; content: string; orderIndex: number }) => {
+    mutationFn: async (data: { workflowId: string; partnerId: string | null; content: string; orderIndex: number }) => {
       const res = await fetch('/api/workflows/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -115,9 +92,8 @@ export function useDeleteTask() {
 }
 
 export function useReorderTasks() {
-  // No invalidamos inmediatamente para mantener la UI optimista rápida
   return useMutation({
-    mutationFn: async (items: { id: string; columnId: string; orderIndex: number }[]) => {
+    mutationFn: async (items: { id: string; partnerId: string | null; orderIndex: number }[]) => {
       const res = await fetch('/api/workflows/tasks/reorder', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },

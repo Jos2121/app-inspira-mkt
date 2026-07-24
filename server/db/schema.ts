@@ -108,24 +108,16 @@ export const diagnosticRecords = pgTable('diagnostic_records', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
-// NUEVAS TABLAS: FLUJOS DE TRABAJO
 export const workflows = pgTable('workflows', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
-export const workflowColumns = pgTable('workflow_columns', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  workflowId: uuid('workflow_id').notNull().references(() => workflows.id, { onDelete: 'cascade' }),
-  title: text('title').notNull(),
-  orderIndex: integer('order_index').notNull().default(0),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
-});
-
 export const workflowTasks = pgTable('workflow_tasks', {
   id: uuid('id').primaryKey().defaultRandom(),
-  columnId: uuid('column_id').notNull().references(() => workflowColumns.id, { onDelete: 'cascade' }),
+  workflowId: uuid('workflow_id').notNull().references(() => workflows.id, { onDelete: 'cascade' }),
+  partnerId: uuid('partner_id').references(() => partners.id, { onDelete: 'set null' }),
   content: text('content').notNull(),
   orderIndex: integer('order_index').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
@@ -156,14 +148,10 @@ export const diagnosticRecordsRelations = relations(diagnosticRecords, ({ one })
 }));
 
 export const workflowsRelations = relations(workflows, ({ many }) => ({
-  columns: many(workflowColumns),
-}));
-
-export const workflowColumnsRelations = relations(workflowColumns, ({ one, many }) => ({
-  workflow: one(workflows, { fields: [workflowColumns.workflowId], references: [workflows.id] }),
   tasks: many(workflowTasks),
 }));
 
 export const workflowTasksRelations = relations(workflowTasks, ({ one }) => ({
-  column: one(workflowColumns, { fields: [workflowTasks.columnId], references: [workflowColumns.id] }),
+  workflow: one(workflows, { fields: [workflowTasks.workflowId], references: [workflows.id] }),
+  partner: one(partners, { fields: [workflowTasks.partnerId], references: [partners.id] }),
 }));

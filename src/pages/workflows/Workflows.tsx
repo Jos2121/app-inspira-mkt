@@ -26,7 +26,7 @@ export default function Workflows() {
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
-  // Seleccionar el primero por defecto si hay datos y ninguno seleccionado
+  // Seleccionar el primero por defecto
   const activeWorkflow = workflows.find(w => w.id === selectedId) || workflows[0];
 
   const handleCreate = (e: React.FormEvent) => {
@@ -43,7 +43,7 @@ export default function Workflows() {
   const handleDelete = () => {
     if (!activeWorkflow) return;
     deleteMutation.mutate(activeWorkflow.id, {
-      onSuccess: () => setSelectedId(null) // Resetear selección
+      onSuccess: () => setSelectedId(null) 
     });
   };
 
@@ -58,14 +58,14 @@ export default function Workflows() {
   return (
     <div className="h-full flex flex-col space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
       
-      {/* Header Interactivo */}
+      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-3">
             <Network className="w-8 h-8 text-blue-600" />
             Flujos de Trabajo
           </h2>
-          <p className="text-zinc-500 mt-2 font-medium">Asigna funciones visualmente (Drag & Drop) a cada rol de tu equipo.</p>
+          <p className="text-zinc-500 mt-2 font-medium">Asigna funciones visualmente a los miembros de tu equipo arrastrando las tarjetas.</p>
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
@@ -104,7 +104,7 @@ export default function Workflows() {
         </div>
       </div>
 
-      {/* Board Area */}
+      {/* Board */}
       <div className="flex-1 glass rounded-[2.5rem] border border-zinc-200/60 shadow-sm p-6 overflow-hidden flex flex-col relative min-h-[600px]">
         {workflows.length === 0 ? (
           <div className="flex flex-col items-center justify-center flex-1 text-center">
@@ -112,7 +112,7 @@ export default function Workflows() {
               <Network className="w-10 h-10 text-blue-500" />
             </div>
             <h3 className="text-xl font-bold text-zinc-900">Aún no tienes flujos de trabajo</h3>
-            <p className="text-zinc-500 mt-2 max-w-md">Crea tu primer flujo para comenzar a asignar tareas arrastrables a los diferentes roles de tu empresa.</p>
+            <p className="text-zinc-500 mt-2 max-w-md">Crea tu primer flujo para comenzar a asignar tareas arrastrables a tu equipo.</p>
             <Button onClick={() => setIsCreating(true)} className="mt-6 rounded-xl bg-blue-600 hover:bg-blue-700 h-12 px-6">
               <Plus className="w-5 h-5 mr-2" /> Crear Primer Flujo
             </Button>
@@ -125,14 +125,14 @@ export default function Workflows() {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50">
-                    <Trash2 className="w-4 h-4 mr-2" /> Eliminar Flujo Completo
+                    <Trash2 className="w-4 h-4 mr-2" /> Eliminar Flujo
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent className="rounded-[2rem]">
                   <AlertDialogHeader>
                     <AlertDialogTitle>¿Eliminar mapa de flujo?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Se eliminará el flujo "{activeWorkflow.name}", incluyendo todas sus columnas y tareas. Esta acción no se puede deshacer.
+                      Se eliminará el flujo "{activeWorkflow.name}". Esta acción no se puede deshacer.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -143,7 +143,6 @@ export default function Workflows() {
               </AlertDialog>
             </div>
             
-            {/* The Kanban Board */}
             <WorkflowBoard workflow={activeWorkflow} />
           </>
         ) : null}
