@@ -45,6 +45,7 @@ export default defineHandler(async (event) => {
       '/api/transactions': '/finance',
       '/api/clients': '/clients',
       '/api/diagnostic': '/diagnostic',
+      '/api/workflows': '/workflows',
     };
 
     for (const [apiPath, tabId] of Object.entries(routeMap)) {

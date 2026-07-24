@@ -22,6 +22,7 @@ const APP_MODULES = [
   { id: '/goals', label: 'Metas y Rendimiento' },
   { id: '/compliance', label: 'Gestión de Cumplimiento' },
   { id: '/finance', label: 'Finanzas y Transacciones' },
+  { id: '/workflows', label: 'Flujos de Trabajo' },
   { id: '/clients', label: 'Directorio de Clientes' },
   { id: '/diagnostic', label: 'Auditorías y Diagnósticos' },
 ];
@@ -154,7 +155,6 @@ export function PartnerFormModal({ partner, isOpen, onClose, onSubmit, isPending
             )}
           </div>
 
-          {/* Mostrar el teléfono en una fila aparte solo si estamos en modo creación */}
           {!partner && (
             <div className="space-y-2">
               <Label>Teléfono (Opcional)</Label>
