@@ -72,10 +72,17 @@ export function useCreateTask() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Error al añadir tarea');
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || 'Error al añadir tarea');
+      }
       return res.json();
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workflows'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      toast.success('Función asignada correctamente');
+    },
+    onError: (err) => toast.error(err.message)
   });
 }
 
@@ -84,10 +91,17 @@ export function useDeleteTask() {
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/workflows/tasks/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Error al eliminar tarea');
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || 'Error al eliminar la función');
+      }
       return res.json();
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workflows'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      toast.success('Función eliminada permanentemente');
+    },
+    onError: (err) => toast.error(err.message)
   });
 }
 

@@ -20,12 +20,10 @@ export function WorkflowBoard({ workflow }: WorkflowBoardProps) {
   const deleteTask = useDeleteTask();
   const reorderTasks = useReorderTasks();
 
-  // Sincronizar estado local al cambiar props
   useEffect(() => {
     setLocalTasks(workflow.tasks);
   }, [workflow.tasks]);
 
-  // Generamos las columnas dinámicamente basadas en los partners + 1 repositorio
   const columns = useMemo(() => {
     const cols = [
       { id: 'unassigned', title: 'Repositorio Principal', partnerId: null, isPool: true }
@@ -62,16 +60,10 @@ export function WorkflowBoard({ workflow }: WorkflowBoardProps) {
           .filter(t => t.partnerId === destPartnerId)
           .sort((a, b) => a.orderIndex - b.orderIndex);
 
-    // Remover
     const [movedTask] = sourceTasks.splice(source.index, 1);
-    
-    // Asignar nuevo parent
     movedTask.partnerId = destPartnerId;
-
-    // Insertar
     destTasks.splice(destination.index, 0, movedTask);
 
-    // Actualizar indices y aplicar al array principal
     const updatesToPush: { id: string; partnerId: string | null; orderIndex: number }[] = [];
     
     destTasks.forEach((t, idx) => {
@@ -102,7 +94,9 @@ export function WorkflowBoard({ workflow }: WorkflowBoardProps) {
     });
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     deleteTask.mutate(id);
     setLocalTasks(prev => prev.filter(t => t.id !== id));
   };
@@ -152,10 +146,11 @@ export function WorkflowBoard({ workflow }: WorkflowBoardProps) {
                           )}
                         >
                           <Button 
+                            type="button"
                             variant="ghost" 
                             size="icon" 
                             className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 h-6 w-6 text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-all z-10"
-                            onClick={() => handleDelete(task.id)}
+                            onClick={(e) => handleDelete(task.id, e)}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
