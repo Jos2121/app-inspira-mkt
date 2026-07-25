@@ -1,7 +1,7 @@
 import { defineHandler } from 'nitro';
 import { readBody, createError } from 'nitro/h3';
-import { db } from '../../../utils/db';
-import { workflowTasks } from '../../../db/schema';
+import { db } from '../../../../utils/db';
+import { workflowTasks } from '../../../../db/schema';
 
 export default defineHandler(async (event) => {
   const body = await readBody(event);
@@ -9,12 +9,17 @@ export default defineHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Faltan campos' });
   }
 
-  const [newTask] = await db.insert(workflowTasks).values({
-    workflowId: body.workflowId,
-    partnerId: body.partnerId || null,
-    content: body.content,
-    orderIndex: body.orderIndex || 0,
-  }).returning();
+  try {
+    const [newTask] = await db.insert(workflowTasks).values({
+      workflowId: body.workflowId,
+      partnerId: body.partnerId || null,
+      content: body.content,
+      orderIndex: body.orderIndex || 0,
+    }).returning();
 
-  return newTask;
+    return newTask;
+  } catch (error) {
+    console.error('Error al crear tarea de flujo:', error);
+    throw createError({ statusCode: 500, message: 'Error interno al crear la tarea' });
+  }
 });

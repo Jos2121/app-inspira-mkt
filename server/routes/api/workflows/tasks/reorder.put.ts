@@ -11,11 +11,15 @@ export default defineHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Estructura inválida' });
   }
 
-  for (const item of body.items) {
-    await db.update(workflowTasks)
-      .set({ partnerId: item.partnerId, orderIndex: item.orderIndex })
-      .where(eq(workflowTasks.id, item.id));
+  try {
+    for (const item of body.items) {
+      await db.update(workflowTasks)
+        .set({ partnerId: item.partnerId, orderIndex: item.orderIndex })
+        .where(eq(workflowTasks.id, item.id));
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Error al reordenar tareas de flujo:', error);
+    throw createError({ statusCode: 500, message: 'Error interno al reordenar tareas' });
   }
-
-  return { success: true };
 });
