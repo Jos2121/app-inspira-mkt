@@ -83,27 +83,15 @@ export function useDeleteTask() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      // Aseguramos que la ruta sea la correcta según la estructura de archivos de Nitro
-      const res = await fetch(`/api/workflows/tasks/${id}`, { 
-        method: 'DELETE' 
-      });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Error al eliminar tarea');
-      }
+      const res = await fetch(`/api/workflows/tasks/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Error al eliminar tarea');
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workflows'] });
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Error al eliminar tarea');
-    }
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workflows'] })
   });
 }
 
 export function useReorderTasks() {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (items: { id: string; partnerId: string | null; orderIndex: number }[]) => {
       const res = await fetch('/api/workflows/tasks/reorder', {
@@ -113,7 +101,6 @@ export function useReorderTasks() {
       });
       if (!res.ok) throw new Error('Error al sincronizar orden');
       return res.json();
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workflows'] })
+    }
   });
 }
