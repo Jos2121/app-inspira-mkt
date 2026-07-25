@@ -105,8 +105,10 @@ export function WorkflowBoard({ workflow }: WorkflowBoardProps) {
   };
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Evita que el clic afecte al Drag-and-Drop
+    e.preventDefault();
+    e.stopPropagation(); 
     deleteTask.mutate(id);
+    // Eliminación optimista local
     setLocalTasks(prev => prev.filter(t => t.id !== id));
   };
 
@@ -148,12 +150,16 @@ export function WorkflowBoard({ workflow }: WorkflowBoardProps) {
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
-                          {...provided.dragHandleProps}
                           className={cn(
                             "bg-white p-3.5 rounded-xl border shadow-sm group relative",
                             snapshot.isDragging ? "shadow-xl border-blue-300 ring-2 ring-blue-500/20 rotate-2 z-50" : "border-zinc-200 hover:border-blue-200 hover:shadow-md transition-all"
                           )}
                         >
+                          {/* El drag handle se separa del botón para evitar conflictos */}
+                          <div {...provided.dragHandleProps} className="absolute top-3 left-3 cursor-grab active:cursor-grabbing">
+                             <GripVertical className="w-4 h-4 text-zinc-300" />
+                          </div>
+
                           <Button 
                             variant="ghost" 
                             size="icon" 
@@ -162,8 +168,8 @@ export function WorkflowBoard({ workflow }: WorkflowBoardProps) {
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
-                          <div className="flex gap-2">
-                            <GripVertical className="w-4 h-4 text-zinc-300 shrink-0 mt-0.5" />
+
+                          <div className="pl-6">
                             <p className="text-sm font-medium text-zinc-700 leading-snug pr-4">
                               {task.content}
                             </p>
