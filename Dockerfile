@@ -1,5 +1,5 @@
 # Etapa 1: Construcción (Builder)
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Habilitar pnpm
 RUN corepack enable pnpm
@@ -20,7 +20,7 @@ COPY . .
 RUN pnpm run build
 
 # Etapa 2: Producción (Runner)
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 
 # Establecer directorio de trabajo
 WORKDIR /app
