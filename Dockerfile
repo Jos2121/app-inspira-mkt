@@ -11,6 +11,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
 
 # Instalar dependencias
+RUN pnpm config set ignore-scripts false
 RUN pnpm install --frozen-lockfile || pnpm install
 
 # Copiar el resto del código fuente
