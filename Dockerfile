@@ -1,13 +1,11 @@
-# Etapa 1: Construcción (Builder)
 FROM node:22-alpine AS builder
 
 # Habilitar pnpm
 RUN corepack enable pnpm
 
-# Establecer directorio de trabajo
 WORKDIR /app
 
-# Copiar archivos de dependencias primero para aprovechar la caché de Docker
+# Copiar archivos de dependencias
 COPY package.json pnpm-lock.yaml* ./
 
 # Instalar dependencias
@@ -17,24 +15,19 @@ RUN pnpm install --frozen-lockfile || pnpm install
 # Copiar el resto del código fuente
 COPY . .
 
-# Compilar la aplicación (Frontend Vite + Backend Nitro)
+# Construir la aplicación
 RUN pnpm run build
 
-# Etapa 2: Producción (Runner)
+# Imagen de producción
 FROM node:22-alpine AS runner
 
-# Establecer directorio de trabajo
 WORKDIR /app
 
-# Configurar variables de entorno para producción
-ENV NODE_ENV=production
-ENV PORT=8080
-
-# Copiar únicamente la carpeta compilada (.output) desde la etapa de construcción
+# Copiar los archivos construidos de Nitro y Vite
 COPY --from=builder /app/.output ./.output
 
-# Exponer el puerto configurado
+ENV NODE_ENV=production
+ENV PORT=8080
 EXPOSE 8080
 
-# Comando de inicio del servidor
 CMD ["node", ".output/server/index.mjs"]
